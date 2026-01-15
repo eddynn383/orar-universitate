@@ -1,26 +1,219 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --primary-background-0: #fff;
+    --primary-background-100: #FEFEFE;
+    --primary-background-200: #f5f6f8;
+    --primary-background-300: #E3E5E8;
+    --primary-background-400: #D5D7DD;
+    --primary-background-500: #C7CAD1;
+    --primary-background-600: #B9BDC6;
+    --primary-background-700: #ABB0BA;
+    --primary-text-100: #5C6370;
+    --primary-text-200: #505662;
+    --primary-text-300: #454A54;
+    --primary-text-400: #393D46;
+    --primary-text-500: #2E3138;
+    --primary-text-600: #22252A;
+    --primary-text-700: #17191C;
+    --accent-brand-100: #eef;
+    --accent-brand-200: #bcbaff;
+    --accent-brand-300: #8986ff;
+    --accent-brand-400: #5752ff;
+    --accent-brand-500: #3d39b3;
+    --accent-brand-600: #232166;
+    --accent-brand-700: #09081a;
+    --accent-success-100: #f0f8f0;
+    --accent-success-200: #c3e1c4;
+    --accent-success-300: #96cb97;
+    --accent-success-400: #69b56b;
+    --accent-success-500: #4a7f4b;
+    --accent-success-600: #2a482b;
+    --accent-success-700: #0b120b;
+    --accent-fail-100: #f8eae7;
+    --accent-fail-200: #e4ab9d;
+    --accent-fail-300: #d06d54;
+    --accent-fail-400: #bc2e0b;
+    --accent-fail-500: #842008;
+    --accent-fail-600: #4b1204;
+    --accent-fail-700: #130501;
+    --accent-warning-100: #fff5e8;
+    --accent-warning-200: #ffd9a3;
+    --accent-warning-300: #ffbc5f;
+    --accent-warning-400: #ff9f1a;
+    --accent-warning-500: #b36f12;
+    --accent-warning-600: #66400a;
+    --accent-warning-700: #1a1003;
+    --accent-info-100: #e7f6f7;
+    --accent-info-200: #9fdbe0;
+    --accent-info-300: #58c0c9;
+    --accent-info-400: #10a5b2;
+    --accent-info-500: #0b747d;
+    --accent-info-600: #064247;
+    --accent-info-700: #021112;
+    --accent-neutral-100: #ececed;
+    --accent-neutral-200: #b3b2b7;
+    --accent-neutral-300: #797981;
+    --accent-neutral-400: #403f4b;
+    --accent-neutral-500: #2d2c35;
+    --accent-neutral-600: #1a191e;
+    --accent-neutral-700: #060608;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+    --primary-background-0: #000;
+    --primary-background-100: #17191C;
+    --primary-background-200: #1c1e22;
+    --primary-background-300: #24262b;
+    --primary-background-400: #393E46;
+    --primary-background-500: #454A54;
+    --primary-background-600: #505662;
+    --primary-background-700: #5B6271;
+    --primary-text-100: #ABB0BA;
+    --primary-text-200: #B9BDC5;
+    --primary-text-300: #C7CAD1;
+    --primary-text-400: #D5D7DD;
+    --primary-text-500: #E3E5E8;
+    --primary-text-600: #F1F2F4;
+    --primary-text-700: #FEFEFE;
+    --accent-brand-100: #eef;
+    --accent-brand-200: #bcbaff;
+    --accent-brand-300: #8986ff;
+    --accent-brand-400: #5752ff;
+    --accent-brand-500: #3d39b3;
+    --accent-brand-600: #232166;
+    --accent-brand-700: #09081a;
+    --accent-success-100: #f0f8f0;
+    --accent-success-200: #c3e1c4;
+    --accent-success-300: #96cb97;
+    --accent-success-400: #69b56b;
+    --accent-success-500: #4a7f4b;
+    --accent-success-600: #2a482b;
+    --accent-success-700: #0b120b;
+    --accent-fail-100: #f8eae7;
+    --accent-fail-200: #e4ab9d;
+    --accent-fail-300: #d06d54;
+    --accent-fail-400: #bc2e0b;
+    --accent-fail-500: #842008;
+    --accent-fail-600: #4b1204;
+    --accent-fail-700: #130501;
+    --accent-warning-100: #fff5e8;
+    --accent-warning-200: #ffd9a3;
+    --accent-warning-300: #ffbc5f;
+    --accent-warning-400: #ff9f1a;
+    --accent-warning-500: #b36f12;
+    --accent-warning-600: #66400a;
+    --accent-warning-700: #1a1003;
+    --accent-info-100: #e7f6f7;
+    --accent-info-200: #9fdbe0;
+    --accent-info-300: #58c0c9;
+    --accent-info-400: #10a5b2;
+    --accent-info-500: #0b747d;
+    --accent-info-600: #064247;
+    --accent-info-700: #021112;
+    --accent-neutral-100: #ececed;
+    --accent-neutral-200: #b3b2b7;
+    --accent-neutral-300: #797981;
+    --accent-neutral-400: #403f4b;
+    --accent-neutral-500: #2d2c35;
+    --accent-neutral-600: #1a191e;
+    --accent-neutral-700: #060608;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+    --color-pure: var(--primary-background-0);
+    --color-primary-100: var(--primary-background-100);
+    --color-primary-200: var(--primary-background-200);
+    --color-primary-300: var(--primary-background-300);
+    --color-primary-400: var(--primary-background-400);
+    --color-primary-500: var(--primary-background-500);
+    --color-primary-600: var(--primary-background-600);
+    --color-primary-700: var(--primary-background-700);
+    --color-primary-800: var(--primary-text-100);
+    --color-primary-900: var(--primary-text-200);
+    --color-primary-1000: var(--primary-text-300);
+    --color-primary-1100: var(--primary-text-400);
+    --color-primary-1200: var(--primary-text-500);
+    --color-primary-1300: var(--primary-text-600);
+    --color-primary-1400: var(--primary-text-700);
+
+    --color-brand-100: var(--accent-brand-100);
+    --color-brand-200: var(--accent-brand-200);
+    --color-brand-300: var(--accent-brand-300);
+    --color-brand-400: var(--accent-brand-400);
+    --color-brand-500: var(--accent-brand-500);
+    --color-brand-600: var(--accent-brand-600);
+    --color-brand-700: var(--accent-brand-700);
+
+    --color-success-100: var(--accent-success-100);
+    --color-success-200: var(--accent-success-200);
+    --color-success-300: var(--accent-success-300);
+    --color-success-400: var(--accent-success-400);
+    --color-success-500: var(--accent-success-500);
+    --color-success-600: var(--accent-success-600);
+    --color-success-700: var(--accent-success-700);
+
+    --color-fail-100: var(--accent-fail-100);
+    --color-fail-200: var(--accent-fail-200);
+    --color-fail-300: var(--accent-fail-300);
+    --color-fail-400: var(--accent-fail-400);
+    --color-fail-500: var(--accent-fail-500);
+    --color-fail-600: var(--accent-fail-600);
+    --color-fail-700: var(--accent-fail-700);
+
+    --color-warning-100: var(--accent-warning-100);
+    --color-warning-200: var(--accent-warning-200);
+    --color-warning-300: var(--accent-warning-300);
+    --color-warning-400: var(--accent-warning-400);
+    --color-warning-500: var(--accent-warning-500);
+    --color-warning-600: var(--accent-warning-600);
+    --color-warning-700: var(--accent-warning-700);
+
+    --color-info-100: var(--accent-info-100);
+    --color-info-200: var(--accent-info-200);
+    --color-info-300: var(--accent-info-300);
+    --color-info-400: var(--accent-info-400);
+    --color-info-500: var(--accent-info-500);
+    --color-info-600: var(--accent-info-600);
+    --color-info-700: var(--accent-info-700);
+
+    --color-neutral-100: var(--accent-neutral-100);
+    --color-neutral-200: var(--accent-neutral-200);
+    --color-neutral-300: var(--accent-neutral-300);
+    --color-neutral-400: var(--accent-neutral-400);
+    --color-neutral-500: var(--accent-neutral-500);
+    --color-neutral-600: var(--accent-neutral-600);
+    --color-neutral-700: var(--accent-neutral-700);
+
+    --color-ring-primary: var(--primary-background-300);
+    --color-ring-brand: var(--accent-brand-400);
+    --color-ring-success: var(--accent-success-400);
+    --color-ring-fail: var(--accent-fail-400);
+    --color-ring-warning: var(--accent-warning-400);
+    --color-ring-info: var(--accent-info-400);
 }
+
+
+/* @theme inline {
+    --color-background: var(--primary-background-100);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+} */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--primary-background-100);
+    color: var(--primary-text-400);
+    height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+    overflow-y: hidden;
 }
