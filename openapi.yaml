@@ -1,0 +1,2622 @@
+openapi: 3.0.3
+info:
+  title: API Orar Universitate
+  description: |
+    API REST pentru sistemul de management al orarului universitar.
+
+    Acest API oferă funcționalități complete pentru:
+    - Gestionarea disciplinelor și profesorilor
+    - Administrarea săli de curs și a grupelor de studenți
+    - Programarea orelor și verificarea conflictelor
+    - Gestionarea anilor universitari și a ciclurilor de studiu
+
+    **Autentificare**: Majoritatea endpoint-urilor necesită autentificare prin NextAuth.
+
+    **Roluri disponibile**:
+    - `ADMIN` - Administrator cu acces complet
+    - `SECRETAR` - Secretariat, poate gestiona orarele
+    - `PROFESOR` - Cadru didactic
+    - `STUDENT` - Student
+
+    **Format răspuns standard**:
+    - Succes: `{success: true, data: {...}, meta: {...}}`
+    - Eroare: `{success: false, error: "mesaj", code: "COD_EROARE"}`
+  version: 1.0.0
+  contact:
+    name: Suport API
+servers:
+  - url: http://localhost:3000
+    description: Server local de dezvoltare
+  - url: https://orar.example.com
+    description: Server de producție
+
+tags:
+  - name: Discipline
+    description: Gestionarea disciplinelor universitare
+  - name: Săli
+    description: Gestionarea sălilor de curs
+  - name: Ani de Studiu
+    description: Gestionarea anilor de studiu
+  - name: Ani Universitari
+    description: Gestionarea anilor universitari
+  - name: Orar
+    description: Gestionarea programului de ore
+  - name: Grupe
+    description: Gestionarea grupelor de studenți
+  - name: Cicluri
+    description: Gestionarea ciclurilor de învățământ
+  - name: Cadre Didactice
+    description: Gestionarea cadrelor didactice
+  - name: Status
+    description: Verificarea stării sistemului
+  - name: Autentificare
+    description: Autentificare și autorizare
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: Token de sesiune NextAuth
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Resursa nu a fost găsită
+        code:
+          type: string
+          example: NOT_FOUND
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Numărul total de înregistrări
+          example: 100
+        page:
+          type: integer
+          description: Pagina curentă
+          example: 1
+        limit:
+          type: integer
+          description: Numărul de înregistrări pe pagină
+          example: 50
+        totalPages:
+          type: integer
+          description: Numărul total de pagini
+          example: 2
+
+    Disciplina:
+      type: object
+      required:
+        - id
+        - nume
+        - semestru
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificatorul unic al disciplinei
+        nume:
+          type: string
+          description: Numele disciplinei
+          example: Programare Orientată pe Obiecte
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          description: Semestrul în care se predă disciplina
+          example: 1
+        profesorId:
+          type: string
+          format: uuid
+          description: ID-ul profesorului care predă disciplina
+        anStudiuId:
+          type: string
+          format: uuid
+          description: ID-ul anului de studiu
+        cicluId:
+          type: string
+          format: uuid
+          description: ID-ul ciclului de învățământ
+        profesor:
+          $ref: '#/components/schemas/Cadru'
+        createdAt:
+          type: string
+          format: date-time
+          description: Data creării
+        updatedAt:
+          type: string
+          format: date-time
+          description: Data ultimei actualizări
+
+    DisciplinaInput:
+      type: object
+      required:
+        - nume
+        - semestru
+        - profesorId
+        - anStudiuId
+        - cicluId
+      properties:
+        nume:
+          type: string
+          description: Numele disciplinei
+          example: Programare Orientată pe Obiecte
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          description: Semestrul
+          example: 1
+        profesorId:
+          type: string
+          format: uuid
+          description: ID-ul profesorului
+        anStudiuId:
+          type: string
+          format: uuid
+          description: ID-ul anului de studiu
+        cicluId:
+          type: string
+          format: uuid
+          description: ID-ul ciclului
+
+    Sala:
+      type: object
+      required:
+        - id
+        - nume
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificatorul unic al sălii
+        nume:
+          type: string
+          description: Numele sălii
+          example: A201
+        cladire:
+          type: string
+          description: Clădirea în care se află sala
+          example: Corp A
+        capacitate:
+          type: integer
+          description: Capacitatea sălii (număr de locuri)
+          example: 50
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SalaInput:
+      type: object
+      required:
+        - nume
+      properties:
+        nume:
+          type: string
+          description: Numele sălii
+          example: A201
+        cladire:
+          type: string
+          description: Clădirea
+          example: Corp A
+        capacitate:
+          type: integer
+          minimum: 1
+          description: Capacitatea
+          example: 50
+
+    AnStudiu:
+      type: object
+      required:
+        - id
+        - an
+      properties:
+        id:
+          type: string
+          format: uuid
+        an:
+          type: integer
+          minimum: 1
+          maximum: 6
+          description: Anul de studiu (1-6)
+          example: 1
+        cicluId:
+          type: string
+          format: uuid
+          description: ID-ul ciclului de învățământ
+        ciclu:
+          $ref: '#/components/schemas/Ciclu'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AnStudiuInput:
+      type: object
+      required:
+        - an
+        - cicluId
+      properties:
+        an:
+          type: integer
+          minimum: 1
+          maximum: 6
+          description: Anul de studiu
+          example: 1
+        cicluId:
+          type: string
+          format: uuid
+          description: ID-ul ciclului
+
+    AnUniversitar:
+      type: object
+      required:
+        - id
+        - anInceput
+        - anSfarsit
+      properties:
+        id:
+          type: string
+          format: uuid
+        anInceput:
+          type: integer
+          description: Anul de început
+          example: 2024
+        anSfarsit:
+          type: integer
+          description: Anul de sfârșit
+          example: 2025
+        publicat:
+          type: boolean
+          description: Dacă anul universitar este publicat
+          default: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AnUniversitarInput:
+      type: object
+      required:
+        - anInceput
+        - anSfarsit
+      properties:
+        anInceput:
+          type: integer
+          description: Anul de început
+          example: 2024
+        anSfarsit:
+          type: integer
+          description: Anul de sfârșit
+          example: 2025
+        publicat:
+          type: boolean
+          description: Status publicare
+          default: false
+
+    Eveniment:
+      type: object
+      required:
+        - id
+        - zi
+        - oraInceput
+        - oraSfarsit
+        - tipActivitate
+        - frecventa
+        - semestru
+      properties:
+        id:
+          type: string
+          format: uuid
+        zi:
+          type: string
+          enum: [luni, marti, miercuri, joi, vineri, sambata, duminica]
+          description: Ziua săptămânii
+          example: luni
+        oraInceput:
+          type: string
+          pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+          description: Ora de început (format HH:MM)
+          example: '08:00'
+        oraSfarsit:
+          type: string
+          pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+          description: Ora de sfârșit (format HH:MM)
+          example: '10:00'
+        tipActivitate:
+          type: string
+          enum: [C, S, L, P]
+          description: |
+            Tipul activității:
+            - C: Curs
+            - S: Seminar
+            - L: Laborator
+            - P: Proiect
+          example: C
+        frecventa:
+          type: string
+          enum: [toate, para, impara]
+          description: |
+            Frecvența desfășurării:
+            - toate: Toate săptămânile
+            - para: Doar săptămânile pare
+            - impara: Doar săptămânile impare
+          example: toate
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          description: Semestrul
+          example: 1
+        anUniversitarId:
+          type: string
+          format: uuid
+        cicluId:
+          type: string
+          format: uuid
+        profesorId:
+          type: string
+          format: uuid
+        disciplinaId:
+          type: string
+          format: uuid
+        salaId:
+          type: string
+          format: uuid
+        profesor:
+          $ref: '#/components/schemas/Cadru'
+        disciplina:
+          $ref: '#/components/schemas/Disciplina'
+        sala:
+          $ref: '#/components/schemas/Sala'
+        grupe:
+          type: array
+          items:
+            $ref: '#/components/schemas/Grupa'
+        createdBy:
+          type: string
+          description: Utilizatorul care a creat evenimentul
+        updatedBy:
+          type: string
+          description: Utilizatorul care a actualizat ultima dată evenimentul
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvenimentInput:
+      type: object
+      required:
+        - zi
+        - oraInceput
+        - oraSfarsit
+        - tipActivitate
+        - frecventa
+        - semestru
+        - anUniversitarId
+        - cicluId
+        - profesorId
+        - disciplinaId
+        - salaId
+        - grupeIds
+      properties:
+        zi:
+          type: string
+          enum: [luni, marti, miercuri, joi, vineri, sambata, duminica]
+          example: luni
+        oraInceput:
+          type: string
+          pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+          example: '08:00'
+        oraSfarsit:
+          type: string
+          pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+          example: '10:00'
+        tipActivitate:
+          type: string
+          enum: [C, S, L, P]
+          example: C
+        frecventa:
+          type: string
+          enum: [toate, para, impara]
+          example: toate
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          example: 1
+        anUniversitarId:
+          type: string
+          format: uuid
+        cicluId:
+          type: string
+          format: uuid
+        profesorId:
+          type: string
+          format: uuid
+        disciplinaId:
+          type: string
+          format: uuid
+        salaId:
+          type: string
+          format: uuid
+        grupeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Lista ID-urilor grupelor
+
+    Grupa:
+      type: object
+      required:
+        - id
+        - nume
+        - numarGrupa
+        - semestru
+      properties:
+        id:
+          type: string
+          format: uuid
+        nume:
+          type: string
+          description: Numele grupei
+          example: 1A
+        numarGrupa:
+          type: integer
+          description: Numărul grupei
+          example: 1
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          description: Semestrul
+          example: 1
+        anStudiuId:
+          type: string
+          format: uuid
+        cicluId:
+          type: string
+          format: uuid
+        anStudiu:
+          $ref: '#/components/schemas/AnStudiu'
+        ciclu:
+          $ref: '#/components/schemas/Ciclu'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    GrupaInput:
+      type: object
+      required:
+        - nume
+        - numarGrupa
+        - semestru
+        - anStudiuId
+        - cicluId
+      properties:
+        nume:
+          type: string
+          description: Numele grupei
+          example: 1A
+        numarGrupa:
+          type: integer
+          description: Numărul grupei
+          example: 1
+        semestru:
+          type: integer
+          minimum: 1
+          maximum: 2
+          example: 1
+        anStudiuId:
+          type: string
+          format: uuid
+        cicluId:
+          type: string
+          format: uuid
+
+    Ciclu:
+      type: object
+      required:
+        - id
+        - nume
+      properties:
+        id:
+          type: string
+          format: uuid
+        nume:
+          type: string
+          description: Numele ciclului de învățământ
+          example: Licență
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CicluInput:
+      type: object
+      required:
+        - nume
+      properties:
+        nume:
+          type: string
+          description: Numele ciclului
+          example: Licență
+
+    Cadru:
+      type: object
+      required:
+        - id
+        - prenume
+        - numeFamilie
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        prenume:
+          type: string
+          description: Prenumele
+          example: Ion
+        numeFamilie:
+          type: string
+          description: Numele de familie
+          example: Popescu
+        email:
+          type: string
+          format: email
+          description: Adresa de email (unică)
+          example: ion.popescu@university.ro
+        telefon:
+          type: string
+          description: Număr de telefon
+          example: '+40712345678'
+        grad:
+          type: string
+          description: Gradul didactic
+          example: Conferențiar
+        titlu:
+          type: string
+          description: Titlul academic
+          example: Dr.
+        imagine:
+          type: string
+          description: URL imagine profil
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CadruInput:
+      type: object
+      required:
+        - prenume
+        - numeFamilie
+        - email
+      properties:
+        prenume:
+          type: string
+          example: Ion
+        numeFamilie:
+          type: string
+          example: Popescu
+        email:
+          type: string
+          format: email
+          example: ion.popescu@university.ro
+        telefon:
+          type: string
+          example: '+40712345678'
+        grad:
+          type: string
+          example: Conferențiar
+        titlu:
+          type: string
+          example: Dr.
+        imagine:
+          type: string
+          description: URL imagine
+
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: online
+        version:
+          type: string
+          example: 1.0.0
+        uptime:
+          type: string
+          example: 2d 5h 30m
+        timestamp:
+          type: string
+          format: date-time
+
+security:
+  - sessionAuth: []
+
+paths:
+  /api/discipline:
+    get:
+      tags:
+        - Discipline
+      summary: Listează toate disciplinele
+      description: |
+        Returnează o listă paginată cu toate disciplinele din sistem.
+        Se pot aplica filtre pentru an, ciclu, semestru, profesor și căutare text.
+      operationId: getDiscipline
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Numărul paginii
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Numărul de înregistrări pe pagină (max 100)
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: an
+          in: query
+          description: Filtrare după anul de studiu
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 6
+        - name: ciclu
+          in: query
+          description: Filtrare după ID-ul ciclului
+          schema:
+            type: string
+            format: uuid
+        - name: semestru
+          in: query
+          description: Filtrare după semestru
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2
+        - name: profesor
+          in: query
+          description: Filtrare după ID-ul profesorului
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          description: Căutare text în numele disciplinei
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista disciplinelor returnată cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Disciplina'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Eroare internă de server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Discipline
+      summary: Creează o disciplină nouă
+      description: Creează o nouă disciplină în sistem. Necesită rol de ADMIN.
+      operationId: createDisciplina
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplinaInput'
+      responses:
+        '201':
+          description: Disciplină creată cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Disciplina'
+        '400':
+          description: Date de intrare invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis (necesită rol ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/discipline/{id}:
+    get:
+      tags:
+        - Discipline
+      summary: Obține detaliile unei discipline
+      description: Returnează informații complete despre o disciplină specifică
+      operationId: getDisciplinaById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID-ul disciplinei
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii disciplină
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Disciplina'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Disciplina nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Discipline
+      summary: Actualizează o disciplină
+      description: Actualizează informațiile unei discipline existente. Necesită rol de ADMIN.
+      operationId: updateDisciplina
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID-ul disciplinei
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplinaInput'
+      responses:
+        '200':
+          description: Disciplină actualizată cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Disciplina'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Disciplina nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Discipline
+      summary: Șterge o disciplină
+      description: |
+        Șterge o disciplină din sistem. Necesită rol de ADMIN.
+        Nu se poate șterge o disciplină care are evenimente asociate.
+      operationId: deleteDisciplina
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID-ul disciplinei
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Disciplină ștearsă cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Disciplina a fost ștearsă cu succes
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Disciplina nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - disciplina are evenimente asociate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/sali:
+    get:
+      tags:
+        - Săli
+      summary: Listează toate sălile de curs
+      description: Returnează o listă paginată cu toate sălile din sistem
+      operationId: getSali
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: cladire
+          in: query
+          description: Filtrare după clădire
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Căutare în numele sălii
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista sălilor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sala'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Săli
+      summary: Creează o sală nouă
+      description: Adaugă o nouă sală în sistem. Necesită rol de ADMIN.
+      operationId: createSala
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaInput'
+      responses:
+        '201':
+          description: Sală creată cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Sala'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Sala există deja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/sali/{id}:
+    get:
+      tags:
+        - Săli
+      summary: Obține detaliile unei săli
+      operationId: getSalaById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii sală
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Sala'
+        '404':
+          description: Sala nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Săli
+      summary: Actualizează o sală
+      operationId: updateSala
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaInput'
+      responses:
+        '200':
+          description: Sală actualizată
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Sala'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sala nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Săli
+      summary: Șterge o sală
+      description: Șterge o sală din sistem. Necesită rol de ADMIN.
+      operationId: deleteSala
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sală ștearsă
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Sala nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ani-studiu:
+    get:
+      tags:
+        - Ani de Studiu
+      summary: Listează anii de studiu
+      description: Returnează o listă paginată cu toți anii de studiu
+      operationId: getAniStudiu
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: cicluId
+          in: query
+          description: Filtrare după ID-ul ciclului
+          schema:
+            type: string
+            format: uuid
+        - name: ciclu
+          in: query
+          description: Filtrare după tipul ciclului
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista anilor de studiu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AnStudiu'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Ani de Studiu
+      summary: Creează un an de studiu
+      description: |
+        Creează un nou an de studiu. Necesită rol de ADMIN.
+        Anul trebuie să fie între 1 și 6, și combinația an-ciclu trebuie să fie unică.
+      operationId: createAnStudiu
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnStudiuInput'
+      responses:
+        '201':
+          description: An de studiu creat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnStudiu'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Combinația an-ciclu există deja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ani-studiu/{id}:
+    get:
+      tags:
+        - Ani de Studiu
+      summary: Obține detaliile unui an de studiu
+      operationId: getAnStudiuById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii an de studiu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnStudiu'
+        '404':
+          description: Anul de studiu nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Ani de Studiu
+      summary: Actualizează un an de studiu
+      operationId: updateAnStudiu
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnStudiuInput'
+      responses:
+        '200':
+          description: An de studiu actualizat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnStudiu'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Anul de studiu nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Ani de Studiu
+      summary: Șterge un an de studiu
+      description: |
+        Șterge un an de studiu. Necesită rol de ADMIN.
+        Nu se poate șterge un an care are grupe sau discipline asociate.
+      operationId: deleteAnStudiu
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: An de studiu șters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Anul de studiu nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Anul are dependințe (grupe sau discipline)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ani-universitari:
+    get:
+      tags:
+        - Ani Universitari
+      summary: Listează anii universitari
+      operationId: getAniUniversitari
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: publicat
+          in: query
+          description: Filtrare după status publicare
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista anilor universitari
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AnUniversitar'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Ani Universitari
+      summary: Creează un an universitar
+      description: |
+        Creează un nou an universitar. Necesită rol de ADMIN.
+        Intervalul de ani trebuie să fie unic.
+      operationId: createAnUniversitar
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnUniversitarInput'
+      responses:
+        '201':
+          description: An universitar creat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnUniversitar'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Intervalul de ani există deja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ani-universitari/{id}:
+    get:
+      tags:
+        - Ani Universitari
+      summary: Obține detaliile unui an universitar
+      operationId: getAnUniversitarById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii an universitar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnUniversitar'
+        '404':
+          description: Anul universitar nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Ani Universitari
+      summary: Actualizează un an universitar
+      operationId: updateAnUniversitar
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnUniversitarInput'
+      responses:
+        '200':
+          description: An universitar actualizat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AnUniversitar'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Anul universitar nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Ani Universitari
+      summary: Șterge un an universitar
+      description: |
+        Șterge un an universitar. Necesită rol de ADMIN.
+        Nu se poate șterge un an care are evenimente programate.
+      operationId: deleteAnUniversitar
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: An universitar șters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Anul universitar nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Anul are evenimente asociate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/orar:
+    get:
+      tags:
+        - Orar
+      summary: Listează toate programările
+      description: |
+        Returnează lista programărilor de ore.
+        Suportă filtrare multiplă după an, ciclu, semestru, grupă, profesor, disciplină, sală, zi și an universitar.
+      operationId: getOrar
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: an
+          in: query
+          description: Filtrare după anul de studiu
+          schema:
+            type: integer
+        - name: ciclu
+          in: query
+          description: Filtrare după ID ciclu
+          schema:
+            type: string
+        - name: semestru
+          in: query
+          schema:
+            type: integer
+        - name: grupa
+          in: query
+          description: Filtrare după ID grupă
+          schema:
+            type: string
+        - name: profesor
+          in: query
+          description: Filtrare după ID profesor
+          schema:
+            type: string
+        - name: disciplina
+          in: query
+          description: Filtrare după ID disciplină
+          schema:
+            type: string
+        - name: sala
+          in: query
+          description: Filtrare după ID sală
+          schema:
+            type: string
+        - name: zi
+          in: query
+          description: Filtrare după ziua săptămânii
+          schema:
+            type: string
+            enum: [luni, marti, miercuri, joi, vineri, sambata, duminica]
+        - name: anUniversitar
+          in: query
+          description: Filtrare după ID an universitar
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista programărilor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Eveniment'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Orar
+      summary: Creează o programare nouă
+      description: |
+        Creează un nou eveniment în orar. Necesită rol de ADMIN sau SECRETAR.
+        Sistemul verifică automat conflictele pentru profesori și săli.
+      operationId: createEveniment
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvenimentInput'
+      responses:
+        '201':
+          description: Eveniment creat cu succes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Eveniment'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict de programare (profesor sau sală ocupată)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/orar/{id}:
+    get:
+      tags:
+        - Orar
+      summary: Obține detaliile unui eveniment
+      operationId: getEvenimentById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii eveniment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Eveniment'
+        '404':
+          description: Evenimentul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Orar
+      summary: Actualizează un eveniment
+      description: |
+        Actualizează un eveniment existent. Necesită rol de ADMIN sau SECRETAR.
+        Verifică conflictele excluzând evenimentul curent.
+      operationId: updateEveniment
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvenimentInput'
+      responses:
+        '200':
+          description: Eveniment actualizat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Eveniment'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Evenimentul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict de programare
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Orar
+      summary: Șterge un eveniment
+      description: Șterge un eveniment din orar. Necesită rol de ADMIN sau SECRETAR.
+      operationId: deleteEveniment
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Eveniment șters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Evenimentul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/grupe:
+    get:
+      tags:
+        - Grupe
+      summary: Listează toate grupele
+      operationId: getGrupe
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: an
+          in: query
+          description: Filtrare după anul de studiu
+          schema:
+            type: integer
+        - name: ciclu
+          in: query
+          description: Filtrare după ID ciclu
+          schema:
+            type: string
+        - name: semestru
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          description: Căutare în numele grupei
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista grupelor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Grupa'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Grupe
+      summary: Creează o grupă nouă
+      description: |
+        Creează o nouă grupă. Necesită rol de ADMIN.
+        Numele grupei trebuie să fie unic per an de studiu.
+      operationId: createGrupa
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrupaInput'
+      responses:
+        '201':
+          description: Grupă creată
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Grupa'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Numele grupei există deja pentru acest an
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/grupe/{id}:
+    get:
+      tags:
+        - Grupe
+      summary: Obține detaliile unei grupe
+      operationId: getGrupaById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii grupă
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Grupa'
+        '404':
+          description: Grupa nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Grupe
+      summary: Actualizează o grupă
+      operationId: updateGrupa
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrupaInput'
+      responses:
+        '200':
+          description: Grupă actualizată
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Grupa'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Grupa nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Grupe
+      summary: Șterge o grupă
+      description: |
+        Șterge o grupă. Necesită rol de ADMIN.
+        Nu se poate șterge o grupă care are evenimente programate.
+      operationId: deleteGrupa
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Grupă ștearsă
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Grupa nu a fost găsită
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Grupa are evenimente asociate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/cicluri:
+    get:
+      tags:
+        - Cicluri
+      summary: Listează ciclurile de învățământ
+      operationId: getCicluri
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Lista ciclurilor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ciclu'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Cicluri
+      summary: Creează un ciclu nou
+      description: |
+        Creează un nou ciclu de învățământ (ex: Licență, Master). Necesită rol de ADMIN.
+        Numele ciclului trebuie să fie unic (case-insensitive).
+      operationId: createCiclu
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CicluInput'
+      responses:
+        '201':
+          description: Ciclu creat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Ciclu'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Ciclul există deja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/cicluri/{id}:
+    get:
+      tags:
+        - Cicluri
+      summary: Obține detaliile unui ciclu
+      operationId: getCicluById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii ciclu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Ciclu'
+        '404':
+          description: Ciclul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Cicluri
+      summary: Actualizează un ciclu
+      operationId: updateCiclu
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CicluInput'
+      responses:
+        '200':
+          description: Ciclu actualizat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Ciclu'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ciclul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Cicluri
+      summary: Șterge un ciclu
+      description: |
+        Șterge un ciclu de învățământ. Necesită rol de ADMIN.
+        Nu se poate șterge un ciclu care are ani de studiu, discipline, grupe sau evenimente asociate.
+      operationId: deleteCiclu
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ciclu șters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ciclul nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Ciclul are dependințe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/cadre:
+    get:
+      tags:
+        - Cadre Didactice
+      summary: Listează toate cadrele didactice
+      operationId: getCadre
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: search
+          in: query
+          description: Căutare în nume sau email
+          schema:
+            type: string
+        - name: grad
+          in: query
+          description: Filtrare după gradul didactic
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista cadrelor didactice
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cadru'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: Neautentificat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Cadre Didactice
+      summary: Creează un cadru didactic nou
+      description: |
+        Adaugă un nou cadru didactic în sistem. Necesită rol de ADMIN.
+        Adresa de email trebuie să fie unică.
+      operationId: createCadru
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CadruInput'
+      responses:
+        '201':
+          description: Cadru didactic creat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cadru'
+        '400':
+          description: Date invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email-ul există deja
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/cadre/{id}:
+    get:
+      tags:
+        - Cadre Didactice
+      summary: Obține detaliile unui cadru didactic
+      operationId: getCadruById
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalii cadru didactic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cadru'
+        '404':
+          description: Cadrul didactic nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Cadre Didactice
+      summary: Actualizează un cadru didactic
+      operationId: updateCadru
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CadruInput'
+      responses:
+        '200':
+          description: Cadru didactic actualizat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Cadru'
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cadrul didactic nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Cadre Didactice
+      summary: Șterge un cadru didactic
+      description: |
+        Șterge un cadru didactic din sistem. Necesită rol de ADMIN.
+        Nu se poate șterge un cadru care are evenimente programate.
+      operationId: deleteCadru
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cadru didactic șters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Acces interzis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cadrul didactic nu a fost găsit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Cadrul are evenimente asociate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/status:
+    get:
+      tags:
+        - Status
+      summary: Verifică starea sistemului
+      description: Endpoint de health check pentru monitorizarea sistemului
+      operationId: getStatus
+      security: []
+      responses:
+        '200':
+          description: Sistemul funcționează
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'

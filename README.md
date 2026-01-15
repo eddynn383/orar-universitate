@@ -20,6 +20,32 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Documentație API
+
+Acest proiect include documentație completă OpenAPI/Swagger pentru toate endpoint-urile API.
+
+### Accesare Documentație
+
+Pentru a accesa documentația interactivă Swagger UI:
+
+1. Pornește serverul de dezvoltare (vezi secțiunea Getting Started)
+2. Deschide [http://localhost:3888/api-docs](http://localhost:3888/api-docs) în browser
+
+### Fișier OpenAPI Spec
+
+Specificația OpenAPI completă este disponibilă în:
+- `openapi.yaml` - Specificație completă în format YAML
+- `public/openapi.yaml` - Versiune publică pentru Swagger UI
+
+### Caracteristici Documentație
+
+- **Documentație în limba română** - Toate descrierile sunt în limba română
+- **Toate endpoint-urile documentate** - Discipline, Săli, Ani de Studiu, Orar, Grupe, Cicluri, Cadre Didactice
+- **Scheme de validare** - Modele complete pentru request/response
+- **Exemple** - Exemple pentru fiecare tip de date
+- **Autentificare** - Documentare completă pentru roluri și permisiuni
+- **Try it out** - Testează API-ul direct din browser
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
