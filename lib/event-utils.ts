@@ -24,6 +24,7 @@ type EventWithRelations = {
     teacherId: string
     disciplineId: string
     classroomId: string
+    studyYearId?: string
     teacher: {
         id: string
         firstname: string
@@ -118,6 +119,7 @@ export function transformEventToCalendarEntry(event: EventWithRelations): Calend
         teacherId: event.teacherId,
         disciplineId: event.disciplineId,
         classroomId: event.classroomId,
+        studyYearId: "",
         groupIds,
         // Audit info
         createdBy: event.createdBy || null,

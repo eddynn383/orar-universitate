@@ -40,7 +40,7 @@ export interface CalendarEntry {
     disciplineId?: string
     classroomId?: string
     groupIds?: string[] // Group IDs for editing (many-to-many)
-    // studyYearId: string
+    studyYearId: string
     // Audit info
     createdBy?: AuditUser
     createdAt?: Date | string

@@ -9,11 +9,11 @@ import { Input } from "@/components/Input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/Select";
 import { Spinner } from "@/components/Spinner";
 import { useActionState, useEffect, useState } from "react";
-import { Teacher } from "@/app/generated/prisma/client";
 import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { Label } from "@/components/Label";
 import { AuditUser, LearningTypeWithStudyYears } from "@/types/global";
 import { DialogFooterWithAudit } from "@/components/DialogFooterWithAudit";
+import { Teacher } from "@/app/generated/prisma/client";
 
 const SEMESTERS = [
     {
