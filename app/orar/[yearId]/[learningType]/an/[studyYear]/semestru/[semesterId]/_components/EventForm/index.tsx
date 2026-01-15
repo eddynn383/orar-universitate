@@ -88,7 +88,7 @@ export function EventForm({
     academicYearId,
     semester,
     learningTypeId,
-    studyYearId,
+    // studyYearId,
     groups,
     classrooms,
     teachers,

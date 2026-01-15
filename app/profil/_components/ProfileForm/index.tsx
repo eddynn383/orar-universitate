@@ -57,7 +57,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
     const [profileState, profileAction, profilePending] = useActionState<ActionState, FormData>(updateProfile, null)
     const [passwordState, passwordAction, passwordPending] = useActionState<ActionState, FormData>(updatePassword, null)
 
-    const [imageUrl, setImageUrl] = useState<string>(user.image || "")
+    const [imageUrl, setImageUrl] = useState<string | null>(user.image)
     const [showSuccess, setShowSuccess] = useState(false)
     const [successMessage, setSuccessMessage] = useState("")
 
@@ -107,7 +107,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <CardContent>
                     <form action={profileAction}>
                         <input type="hidden" name="userId" value={user.id} />
-                        <input type="hidden" name="image" value={imageUrl} />
+                        <input type="hidden" name="image" value={imageUrl ?? ""} />
 
                         <FieldSet>
                             <FieldGroup>

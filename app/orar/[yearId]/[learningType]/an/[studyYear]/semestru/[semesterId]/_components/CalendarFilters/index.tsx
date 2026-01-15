@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/Button"
-import { Group } from "@/app/generated/prisma/client"
 import { Check, Filter, X } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
 import { Badge } from "@/components/Badge"
+import { Group } from "@/app/generated/prisma/client"
 
 const EVENT_TYPES = [
     { name: "Curs", value: "C", color: "bg-blue-500" },
