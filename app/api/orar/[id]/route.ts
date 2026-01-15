@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing individual schedule events by ID
+ *
+ * This module handles GET, PUT, and DELETE operations for specific schedule events.
+ * Supports retrieving detailed event information including all relationships,
+ * updating event properties with conflict checking, and deleting events.
+ *
+ * @module app/api/orar/[id]
+ */
+
 // app/api/orar/[id]/route.ts
 
 import { NextRequest } from "next/server"
@@ -12,15 +22,65 @@ import {
 import { eventSchema } from "@/schemas/event"
 import { z } from "zod"
 
+/**
+ * Route parameters type definition
+ *
+ * @typedef {Object} RouteParams
+ * @property {Promise<{id: string}>} params - Route parameters containing event ID
+ */
 type RouteParams = {
     params: Promise<{ id: string }>
 }
 
 /**
  * GET /api/orar/{id}
- * Returnează detaliile pentru o înregistrare specifică
- * 
- * Requires: Authenticated user
+ *
+ * Retrieves comprehensive details for a specific schedule event including all associated
+ * entities (teacher, discipline, classroom, groups, academic year) and audit information.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the event ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - id: Event ID
+ *   - zi: Day of week
+ *   - oraInceput: Start time
+ *   - oraSfarsit: End time
+ *   - durata: Duration in minutes
+ *   - tipActivitate: Activity type (C/S/L/P)
+ *   - frecventa: Recurrence pattern
+ *   - semestru: Semester number
+ *   - anUniversitar: Academic year details (id, period, published status)
+ *   - ciclu: Learning cycle details
+ *   - profesor: Full teacher details (name, grade, contact info)
+ *   - disciplina: Discipline details with study year info
+ *   - sala: Classroom details (name, building, capacity)
+ *   - grupe: Array of associated groups
+ *   - audit: Creation and modification metadata (user, timestamp)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {404} If event with given ID does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/orar/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: {
+ * //     id: "cm123...",
+ * //     zi: "LUNI",
+ * //     oraInceput: "08:00",
+ * //     oraSfarsit: "10:00",
+ * //     profesor: { id: "...", nume: "Prof. Ion Popescu", email: "...", telefon: "..." },
+ * //     disciplina: { id: "...", nume: "Matematică", anStudiu: 1 },
+ * //     sala: { id: "...", nume: "A101", cladire: "Corp A" },
+ * //     grupe: [{ id: "...", nume: "A1" }],
+ * //     audit: { creatDe: {...}, creatLa: "...", modificatDe: {...}, modificatLa: "..." }
+ * //   }
+ * // }
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     // Verifică autentificarea
@@ -204,11 +264,49 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/orar/{id}
- * Actualizează o intrare existentă
- * 
- * Body: Same as POST /api/orar
- * 
- * Requires: ADMIN or SECRETAR role
+ *
+ * Updates an existing schedule event with new data.
+ * Validates the updated data and checks for scheduling conflicts (excluding the current event).
+ * Updates group associations by removing old ones and creating new ones.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the event ID
+ *
+ * @body {Object} [request.body] - Event update data (all fields optional)
+ * @body {string} [request.body.zi] - New day of week
+ * @body {string} [request.body.oraInceput] - New start time
+ * @body {string} [request.body.oraSfarsit] - New end time
+ * @body {string} [request.body.tipActivitate] - New activity type
+ * @body {string} [request.body.frecventa] - New recurrence pattern
+ * @body {number} [request.body.semestru] - New semester
+ * @body {string} [request.body.anUniversitarId] - New academic year ID
+ * @body {string} [request.body.cicluId] - New learning type ID
+ * @body {string} [request.body.profesorId] - New teacher ID
+ * @body {string} [request.body.disciplinaId] - New discipline ID
+ * @body {string} [request.body.salaId] - New classroom ID
+ * @body {string[]} [request.body.grupeIds] - New array of group IDs
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin or secretary
+ * @throws {404} If event does not exist
+ * @throws {409} If updated schedule creates conflicts
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin or Secretary role
+ *
+ * @example
+ * // Request: PUT /api/orar/cm123...
+ * // Body: { "zi": "MARTI", "oraInceput": "10:00", "oraSfarsit": "12:00" }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Eveniment actualizat cu succes" }
+ * // }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Verifică autorizarea
@@ -303,9 +401,31 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/orar/{id}
- * Șterge o intrare de orar
- * 
- * Requires: ADMIN or SECRETAR role
+ *
+ * Deletes a schedule event from the timetable.
+ * Associated group relations are automatically deleted via cascade.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the event ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin or secretary
+ * @throws {404} If event does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin or Secretary role
+ *
+ * @example
+ * // Request: DELETE /api/orar/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Eveniment șters cu succes" }
+ * // }
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Verifică autorizarea
@@ -350,7 +470,40 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 }
 
-// Helper pentru verificarea conflictelor la update (exclude evenimentul curent)
+/**
+ * Checks for scheduling conflicts when updating an event.
+ *
+ * Similar to checkScheduleConflicts but excludes the current event from conflict detection.
+ * This allows updating an event without it conflicting with itself.
+ *
+ * @async
+ * @param {string} excludeEventId - The ID of the event being updated (to exclude from checks)
+ * @param {Object} data - The updated event data to check for conflicts
+ * @param {string} data.day - Day of week
+ * @param {string} data.startHour - Start time in HH:MM format
+ * @param {string} data.endHour - End time in HH:MM format
+ * @param {number} data.semester - Semester number
+ * @param {string} data.academicYearId - Academic year ID
+ * @param {string} data.teacherId - Teacher ID
+ * @param {string} data.classroomId - Classroom ID
+ * @param {string} data.learningId - Learning type ID
+ * @param {string} [data.eventRecurrence] - Recurrence pattern (toate/para/impara)
+ *
+ * @returns {Promise<string[]>} Array of conflict messages (empty if no conflicts)
+ *
+ * @example
+ * const conflicts = await checkScheduleConflictsForUpdate("cm123...", {
+ *   day: "MARTI",
+ *   startHour: "10:00",
+ *   endHour: "12:00",
+ *   semester: 1,
+ *   academicYearId: "cm456...",
+ *   teacherId: "cm789...",
+ *   classroomId: "cm012...",
+ *   learningId: "cm345...",
+ *   eventRecurrence: "toate"
+ * })
+ */
 async function checkScheduleConflictsForUpdate(
     excludeEventId: string,
     data: {

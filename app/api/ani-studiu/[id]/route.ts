@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing individual study years by ID
+ *
+ * This module handles GET, PUT, and DELETE operations for specific study years.
+ * Supports retrieving detailed information including associated groups and disciplines,
+ * updating study year properties, and deleting study years with dependency checks.
+ *
+ * @module app/api/ani-studiu/[id]
+ */
+
 // app/api/ani-studiu/[id]/route.ts
 
 import { NextRequest } from "next/server"
@@ -11,17 +21,67 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
+/**
+ * Validation schema for study year updates
+ *
+ * @typedef {Object} StudyYearSchema
+ * @property {number} year - Year number (1-6)
+ * @property {string} learningTypeId - Learning type (cycle) ID
+ */
 const studyYearSchema = z.object({
     year: z.number().int().min(1).max(6),
     learningTypeId: z.string().min(1, "Ciclul de învățământ este obligatoriu")
 })
 
+/**
+ * Route parameters type definition
+ *
+ * @typedef {Object} RouteParams
+ * @property {Promise<{id: string}>} params - Route parameters containing study year ID
+ */
 type RouteParams = {
     params: Promise<{ id: string }>
 }
 
 /**
  * GET /api/ani-studiu/{id}
+ *
+ * Retrieves detailed information about a specific study year including all associated
+ * student groups and disciplines with their teachers.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the study year ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - id: Study year ID
+ *   - an: Year number
+ *   - nume: Display name
+ *   - ciclu: Learning type details
+ *   - grupe: Array of associated student groups
+ *   - discipline: Array of associated disciplines with teacher info
+ *   - statistici: Statistics (group count, discipline count)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {404} If study year with given ID does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/ani-studiu/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: {
+ * //     id: "cm123...",
+ * //     an: 1,
+ * //     nume: "Anul 1",
+ * //     ciclu: { id: "...", nume: "Licență" },
+ * //     grupe: [...],
+ * //     discipline: [...],
+ * //     statistici: { numarGrupe: 5, numarDiscipline: 10 }
+ * //   }
+ * // }
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAuth()
@@ -124,6 +184,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/ani-studiu/{id}
+ *
+ * Updates an existing study year's properties.
+ * Validates that the new learning type exists (if changed) and prevents
+ * duplicate year-cycle combinations.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the study year ID
+ *
+ * @body {Object} [request.body] - Study year update data (all fields optional)
+ * @body {number} [request.body.an] - New year number (1-6)
+ * @body {string} [request.body.cicluId] - New learning type ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If study year or new learning type does not exist
+ * @throws {409} If updated year-cycle combination already exists
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: PUT /api/ani-studiu/cm123...
+ * // Body: { "an": 2 }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "An de studiu actualizat cu succes" }
+ * // }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
@@ -213,6 +306,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/ani-studiu/{id}
+ *
+ * Deletes a study year if it has no dependencies (student groups or disciplines).
+ * Prevents deletion if the study year is being used by any groups or disciplines.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the study year ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If study year does not exist
+ * @throws {409} If study year has associated groups or disciplines
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: DELETE /api/ani-studiu/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "An de studiu șters cu succes" }
+ * // }
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()

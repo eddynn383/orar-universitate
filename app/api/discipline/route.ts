@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing academic disciplines (Discipline)
+ *
+ * This module handles CRUD operations for academic disciplines (courses/subjects),
+ * including their associations with teachers, study years, learning cycles, and semesters.
+ * Supports advanced filtering by multiple criteria and searching by name.
+ *
+ * @module app/api/discipline
+ */
+
 // app/api/discipline/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,15 +25,48 @@ import { z } from "zod"
 
 /**
  * GET /api/discipline
- * Returnează lista disciplinelor
- * 
- * Query params:
- * - page, limit: paginare
- * - an: anul de studiu (1, 2, 3)
- * - ciclu: tipul de învățământ (licenta, master)
- * - semestru: semestrul (1, 2)
- * - profesor: ID-ul profesorului
- * - search: căutare după nume
+ *
+ * Retrieves a paginated list of academic disciplines with comprehensive filtering options.
+ * Each discipline includes teacher information, study year, learning cycle, and event statistics.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [search] - Search term for filtering by discipline name (case-insensitive)
+ * @query {number} [semestru] - Filter by semester (1 or 2)
+ * @query {string} [profesor] - Filter by teacher ID
+ * @query {number} [an] - Filter by study year (1, 2, 3, 4, 5, 6)
+ * @query {string} [ciclu] - Filter by learning cycle name (e.g., "licenta", "master")
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of discipline objects with:
+ *     - id: Discipline ID
+ *     - nume: Discipline name
+ *     - semestru: Semester (1 or 2)
+ *     - anStudiu: Study year number
+ *     - ciclu: Learning cycle name
+ *     - cicluId: Learning cycle ID
+ *     - anStudiuId: Study year ID
+ *     - profesor: Teacher object with id and full name (or null)
+ *     - numarEvenimente: Number of associated events
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/discipline?an=2&ciclu=licenta&semestru=1&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{ id: "...", nume: "Programare Web", semestru: 1, anStudiu: 2, ciclu: "Licență", profesor: {...}, ... }],
+ * //   meta: { total: 15, page: 1, limit: 10, totalPages: 2 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -139,16 +182,39 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/discipline
- * Creează o nouă disciplină
- * 
- * Body:
- * {
- *   nume: "Programare Web",
- *   semestru: 1,
- *   profesorId: "...",
- *   anStudiuId: "...",
- *   cicluId: "..."
- * }
+ *
+ * Creates a new academic discipline with the specified properties.
+ * Validates all required fields and associations.
+ * The creating user's ID is automatically recorded.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The discipline data
+ * @body {string} request.body.nume - Discipline name (required)
+ * @body {number} request.body.semestru - Semester (1 or 2, required)
+ * @body {string} [request.body.profesorId] - Teacher ID (optional, can be null)
+ * @body {string} [request.body.anStudiuId] - Study year ID (optional)
+ * @body {string} [request.body.cicluId] - Learning cycle ID (optional)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (missing required fields or invalid values)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/discipline
+ * // Body: { "nume": "Programare Web", "semestru": 1, "profesorId": "cm123...", "anStudiuId": "cm456...", "cicluId": "cm789..." }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "...", message: "Disciplină creată cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()

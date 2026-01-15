@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing individual learning cycles by ID
+ *
+ * This module handles GET, PUT, and DELETE operations for specific learning cycles.
+ * Supports retrieving detailed information including associated study years, disciplines, and groups,
+ * updating learning cycle properties, and deleting learning cycles with comprehensive dependency checks.
+ *
+ * @module app/api/cicluri/[id]
+ */
+
 // app/api/cicluri/[id]/route.ts
 
 import { NextRequest } from "next/server"
@@ -11,16 +21,66 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
+/**
+ * Validation schema for learning cycle updates
+ *
+ * @typedef {Object} LearningTypeSchema
+ * @property {string} learningCycle - Learning cycle name
+ */
 const learningTypeSchema = z.object({
     learningCycle: z.string().min(1, "Numele ciclului este obligatoriu")
 })
 
+/**
+ * Route parameters type definition
+ *
+ * @typedef {Object} RouteParams
+ * @property {Promise<{id: string}>} params - Route parameters containing learning cycle ID
+ */
 type RouteParams = {
     params: Promise<{ id: string }>
 }
 
 /**
  * GET /api/cicluri/{id}
+ *
+ * Retrieves detailed information about a specific learning cycle including all associated
+ * study years, disciplines, student groups, and comprehensive statistics.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the learning cycle ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - id: Learning cycle ID
+ *   - nume: Cycle name
+ *   - aniStudiu: Array of study years (id, an)
+ *   - discipline: Array of first 20 disciplines (id, nume, semestru)
+ *   - grupe: Array of first 20 student groups (id, nume, semestru)
+ *   - statistici: Statistics (numarEvenimente, numarDiscipline, numarGrupe, numarAniStudiu)
+ *   - createdAt: Creation timestamp
+ *   - updatedAt: Last update timestamp
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {404} If learning cycle with given ID does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/cicluri/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: {
+ * //     id: "cm123...",
+ * //     nume: "Licență",
+ * //     aniStudiu: [{id: "...", an: 1}, {id: "...", an: 2}, ...],
+ * //     discipline: [...],
+ * //     grupe: [...],
+ * //     statistici: { numarEvenimente: 150, numarDiscipline: 45, numarGrupe: 12, numarAniStudiu: 4 },
+ * //     ...
+ * //   }
+ * // }
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAuth()
@@ -117,6 +177,37 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/cicluri/{id}
+ *
+ * Updates an existing learning cycle's name.
+ * Validates the new name and prevents duplicate learning cycle names (case-insensitive).
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the learning cycle ID
+ *
+ * @body {Object} [request.body] - Learning cycle update data
+ * @body {string} [request.body.nume] - New learning cycle name
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (empty or invalid name)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If learning cycle does not exist
+ * @throws {409} If updated name already exists for another learning cycle
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: PUT /api/cicluri/cm123...
+ * // Body: { "nume": "Licență (zi)" }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Ciclu de învățământ actualizat cu succes" }
+ * // }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
@@ -193,6 +284,33 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/cicluri/{id}
+ *
+ * Deletes a learning cycle if it has no dependencies.
+ * Prevents deletion if the learning cycle is being used by any study years, disciplines, groups, or events.
+ * Provides detailed information about dependencies if deletion is prevented.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the learning cycle ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If learning cycle does not exist
+ * @throws {409} If learning cycle has associated study years, disciplines, groups, or events
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: DELETE /api/cicluri/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Ciclu de învățământ șters cu succes" }
+ * // }
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()

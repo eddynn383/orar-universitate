@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing study years (Ani de Studiu)
+ *
+ * This module handles CRUD operations for study years, which represent
+ * the academic years within a learning cycle (e.g., Year 1, Year 2, Year 3).
+ * Each study year is associated with a learning type (Licență, Master, etc.).
+ *
+ * @module app/api/ani-studiu
+ */
+
 // app/api/ani-studiu/route.ts
 
 import { NextRequest } from "next/server"
@@ -12,7 +22,13 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
-// Schema pentru validare
+/**
+ * Validation schema for study year creation and updates
+ *
+ * @typedef {Object} StudyYearSchema
+ * @property {number} year - Year number (1-6)
+ * @property {string} learningTypeId - Learning type (cycle) ID
+ */
 const studyYearSchema = z.object({
     year: z.number().int().min(1).max(6),
     learningTypeId: z.string().min(1, "Ciclul de învățământ este obligatoriu")
@@ -20,11 +36,39 @@ const studyYearSchema = z.object({
 
 /**
  * GET /api/ani-studiu
- * Returnează lista anilor de studiu (An 1, An 2, An 3, etc.)
- * 
- * Query params:
- * - page, limit: paginare
- * - ciclu: ID-ul sau numele ciclului de învățământ
+ *
+ * Retrieves a paginated list of study years with their associated learning types and statistics.
+ * Study years represent academic years (Year 1, Year 2, etc.) within a learning cycle.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [cicluId] - Filter by learning type ID
+ * @query {string} [ciclu] - Filter by learning type name (case-insensitive)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of study year objects with:
+ *     - id: Study year ID
+ *     - an: Year number (1-6)
+ *     - nume: Display name (e.g., "Anul 1")
+ *     - ciclu: Learning type information (id, nume)
+ *     - statistici: Statistics (numarGrupe, numarDiscipline)
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/ani-studiu?ciclu=licenta&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{ id: "...", an: 1, nume: "Anul 1", ciclu: {...}, statistici: {...} }],
+ * //   meta: { total: 3, page: 1, limit: 10, totalPages: 1 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -110,13 +154,37 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/ani-studiu
- * Creează un nou an de studiu
- * 
- * Body:
- * {
- *   an: 1,
- *   cicluId: "..."
- * }
+ *
+ * Creates a new study year for a specific learning type.
+ * Validates that the learning type exists and prevents duplicate year-cycle combinations.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The study year data
+ * @body {number} request.body.an - Year number (1-6)
+ * @body {string} request.body.cicluId - Learning type ID (must exist)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, an, ciclu, message }
+ *
+ * @throws {400} If validation fails (invalid year number or missing cicluId)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If learning type (ciclu) does not exist
+ * @throws {409} If study year already exists for this learning type
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/ani-studiu
+ * // Body: { "an": 1, "cicluId": "cm123..." }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "...", an: 1, ciclu: "Licență", message: "An de studiu creat cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()

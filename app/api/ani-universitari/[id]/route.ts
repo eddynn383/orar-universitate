@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing individual academic years by ID
+ *
+ * This module handles GET, PUT, and DELETE operations for specific academic years.
+ * Supports retrieving detailed information including associated events,
+ * updating academic year properties, and deleting academic years with dependency checks.
+ *
+ * @module app/api/ani-universitari/[id]
+ */
+
 // app/api/ani-universitari/[id]/route.ts
 
 import { NextRequest } from "next/server"
@@ -12,12 +22,58 @@ import {
 import { yearSchema } from "@/schemas/year"
 import { z } from "zod"
 
+/**
+ * Route parameters type definition
+ *
+ * @typedef {Object} RouteParams
+ * @property {Promise<{id: string}>} params - Route parameters containing academic year ID
+ */
 type RouteParams = {
     params: Promise<{ id: string }>
 }
 
 /**
  * GET /api/ani-universitari/{id}
+ *
+ * Retrieves detailed information about a specific academic year including
+ * recent events and statistics.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the academic year ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - id: Academic year ID
+ *   - anInceput: Start year
+ *   - anSfarsit: End year
+ *   - perioada: Display period
+ *   - publicat: Publication status
+ *   - numarEvenimente: Total number of events
+ *   - evenimenteRecente: Array of up to 10 recent events
+ *   - createdAt: Creation timestamp
+ *   - updatedAt: Last update timestamp
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {404} If academic year with given ID does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/ani-universitari/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: {
+ * //     id: "cm123...",
+ * //     anInceput: 2024,
+ * //     anSfarsit: 2025,
+ * //     perioada: "2024-2025",
+ * //     publicat: true,
+ * //     numarEvenimente: 120,
+ * //     evenimenteRecente: [{ id: "...", zi: "Luni", oraInceput: "08:00", ... }],
+ * //     ...
+ * //   }
+ * // }
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAuth()
@@ -90,6 +146,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/ani-universitari/{id}
+ *
+ * Updates an existing academic year's properties.
+ * Validates the year range and prevents duplicate academic year periods.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the academic year ID
+ *
+ * @body {Object} [request.body] - Academic year update data (all fields optional)
+ * @body {number} [request.body.anInceput] - New start year
+ * @body {number} [request.body.anSfarsit] - New end year
+ * @body {boolean} [request.body.publicat] - New publication status
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (invalid year range)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If academic year does not exist
+ * @throws {409} If updated period already exists for another academic year
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: PUT /api/ani-universitari/cm123...
+ * // Body: { "publicat": true }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "An universitar actualizat cu succes" }
+ * // }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
@@ -166,6 +255,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/ani-universitari/{id}
+ *
+ * Deletes an academic year if it has no dependencies (events).
+ * Prevents deletion if the academic year is being used by any events.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the academic year ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If academic year does not exist
+ * @throws {409} If academic year has associated events
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: DELETE /api/ani-universitari/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "An universitar șters cu succes" }
+ * // }
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()

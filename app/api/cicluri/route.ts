@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing learning cycles (Cicluri de Învățământ)
+ *
+ * This module handles CRUD operations for learning cycles, which represent
+ * educational program types (Licență, Master, Doctorat, etc.).
+ * Learning cycles organize study years, student groups, disciplines, and events.
+ *
+ * @module app/api/cicluri
+ */
+
 // app/api/cicluri/route.ts
 
 import { NextRequest } from "next/server"
@@ -12,17 +22,51 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
-// Schema pentru validare
+/**
+ * Validation schema for learning cycle creation and updates
+ *
+ * @typedef {Object} LearningTypeSchema
+ * @property {string} learningCycle - Learning cycle name (e.g., "Licență", "Master")
+ */
 const learningTypeSchema = z.object({
     learningCycle: z.string().min(1, "Numele ciclului este obligatoriu")
 })
 
 /**
  * GET /api/cicluri
- * Returnează lista ciclurilor de învățământ (Licență, Master, etc.)
- * 
- * Query params:
- * - page, limit: paginare
+ *
+ * Retrieves a paginated list of learning cycles with their associated study years and statistics.
+ * Learning cycles represent educational program types (Licență, Master, etc.) and organize
+ * the entire academic structure.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of learning cycle objects with:
+ *     - id: Learning cycle ID
+ *     - nume: Cycle name (e.g., "Licență", "Master")
+ *     - aniStudiu: Array of associated study years (id, an)
+ *     - statistici: Statistics (numarEvenimente, numarDiscipline, numarGrupe)
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/cicluri?page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{ id: "...", nume: "Licență", aniStudiu: [{id: "...", an: 1}, ...], statistici: {...}, ... }],
+ * //   meta: { total: 3, page: 1, limit: 10, totalPages: 1 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -93,12 +137,35 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/cicluri
- * Creează un nou ciclu de învățământ
- * 
- * Body:
- * {
- *   nume: "Licență"
- * }
+ *
+ * Creates a new learning cycle with the specified name.
+ * Validates the cycle name and prevents duplicate learning cycle names (case-insensitive).
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The learning cycle data
+ * @body {string} request.body.nume - Learning cycle name (e.g., "Licență", "Master", "Doctorat")
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, nume, message }
+ *
+ * @throws {400} If validation fails (empty or invalid name)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {409} If learning cycle with this name already exists
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/cicluri
+ * // Body: { "nume": "Licență" }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "...", nume: "Licență", message: "Ciclu de învățământ creat cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()
