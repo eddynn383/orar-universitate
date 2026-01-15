@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing teaching staff (Cadre Didactice)
+ *
+ * This module handles CRUD operations for teachers/professors, including
+ * their personal information, academic grade, contact details, and associations
+ * with disciplines and events. Supports searching and filtering by various criteria.
+ *
+ * @module app/api/cadre
+ */
+
 // app/api/cadre/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,15 +25,47 @@ import { z } from "zod"
 
 /**
  * GET /api/cadre
- * Returnează lista cadrelor didactice
- * 
- * Query params:
- * - page: numărul paginii (default: 1)
- * - limit: numărul de rezultate per pagină (default: 50, max: 100)
- * - search: căutare după nume sau email
- * - grad: filtrare după grad didactic
- * 
- * Requires: Authenticated user
+ *
+ * Retrieves a paginated list of teaching staff with their disciplines and statistics.
+ * Supports searching by name or email and filtering by academic grade.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [search] - Search term for filtering by first name, last name, or email (case-insensitive)
+ * @query {string} [grad] - Filter by academic grade (e.g., "Prof. dr.", "Lector dr.")
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of teacher objects with:
+ *     - id: Teacher ID
+ *     - nume: Full name with grade (e.g., "Prof. dr. Ion Popescu")
+ *     - prenume: First name
+ *     - numeFamilie: Last name
+ *     - grad: Academic grade
+ *     - titlu: Academic title
+ *     - email: Email address
+ *     - telefon: Phone number
+ *     - imagine: Profile image URL
+ *     - discipline: Array of associated disciplines with study year and cycle info
+ *     - statistici: Statistics (numarEvenimente, numarDiscipline)
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/cadre?search=popescu&grad=Prof.%20dr.&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{ id: "...", nume: "Prof. dr. Ion Popescu", email: "ion.popescu@...", discipline: [...], ... }],
+ * //   meta: { total: 15, page: 1, limit: 10, totalPages: 2 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -130,20 +172,42 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/cadre
- * Creează un nou cadru didactic
- * 
- * Body:
- * {
- *   prenume: "Ion",
- *   numeFamilie: "Popescu",
- *   email: "ion.popescu@example.com",
- *   telefon: "0712345678",
- *   grad: "Prof. dr.",
- *   titlu: "Profesor universitar",
- *   imagine: "https://..."
- * }
- * 
- * Requires: ADMIN role
+ *
+ * Creates a new teaching staff member with the specified information.
+ * Validates all required fields and prevents duplicate email addresses.
+ * The creating user's ID is automatically recorded.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The teacher data
+ * @body {string} request.body.prenume - Teacher's first name (required)
+ * @body {string} request.body.numeFamilie - Teacher's last name (required)
+ * @body {string} request.body.email - Teacher's email address (required, must be unique)
+ * @body {string} [request.body.telefon] - Teacher's phone number
+ * @body {string} [request.body.grad] - Academic grade (e.g., "Prof. dr.", "Conf. dr.", "Lector dr.")
+ * @body {string} [request.body.titlu] - Academic title (e.g., "Profesor universitar")
+ * @body {string} [request.body.imagine] - Profile image URL
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (missing required fields or invalid format)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {409} If teacher with this email already exists
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/cadre
+ * // Body: { "prenume": "Ion", "numeFamilie": "Popescu", "email": "ion.popescu@example.com", "grad": "Prof. dr." }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "...", message: "Cadru didactic creat cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()

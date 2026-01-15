@@ -1,3 +1,14 @@
+/**
+ * @fileoverview API routes for managing academic years (Ani Universitari)
+ *
+ * This module handles CRUD operations for academic years, which represent
+ * the calendar years for an academic period (e.g., 2024-2025).
+ * Each academic year has a start year, end year, and publication status.
+ * Academic years are used to organize events and schedules.
+ *
+ * @module app/api/ani-universitari
+ */
+
 // app/api/ani-universitari/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,11 +26,41 @@ import { z } from "zod"
 
 /**
  * GET /api/ani-universitari
- * Returnează lista anilor universitari
- * 
- * Query params:
- * - page, limit: paginare
- * - publicat: filtrare după status publicare (true/false)
+ *
+ * Retrieves a paginated list of academic years with their publication status and statistics.
+ * Academic years represent calendar periods (e.g., 2024-2025) and can be filtered by publication status.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [publicat] - Filter by publication status ("true" or "false")
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of academic year objects with:
+ *     - id: Academic year ID
+ *     - anInceput: Start year
+ *     - anSfarsit: End year
+ *     - perioada: Display period (e.g., "2024-2025")
+ *     - publicat: Publication status
+ *     - numarEvenimente: Number of associated events
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/ani-universitari?publicat=true&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{ id: "...", anInceput: 2024, anSfarsit: 2025, perioada: "2024-2025", publicat: true, numarEvenimente: 120, ... }],
+ * //   meta: { total: 5, page: 1, limit: 10, totalPages: 1 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -82,14 +123,37 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/ani-universitari
- * Creează un nou an universitar
- * 
- * Body:
- * {
- *   anInceput: 2024,
- *   anSfarsit: 2025,
- *   publicat: false
- * }
+ *
+ * Creates a new academic year with the specified period and publication status.
+ * Validates the year range and prevents duplicate academic year periods.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The academic year data
+ * @body {number} request.body.anInceput - Start year (e.g., 2024)
+ * @body {number} request.body.anSfarsit - End year (must be greater than start year)
+ * @body {boolean} [request.body.publicat=false] - Publication status
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, perioada, message }
+ *
+ * @throws {400} If validation fails (invalid year range or format)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {409} If academic year with this period already exists
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/ani-universitari
+ * // Body: { "anInceput": 2024, "anSfarsit": 2025, "publicat": false }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "...", perioada: "2024-2025", message: "An universitar creat cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()

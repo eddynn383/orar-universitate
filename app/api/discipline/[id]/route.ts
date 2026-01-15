@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing individual disciplines by ID
+ *
+ * This module handles GET, PUT, and DELETE operations for specific academic disciplines.
+ * Supports retrieving detailed information including teacher and study year associations,
+ * updating discipline properties, and deleting disciplines with dependency checks.
+ *
+ * @module app/api/discipline/[id]
+ */
+
 // app/api/discipline/[id]/route.ts
 
 import { NextRequest } from "next/server"
@@ -12,12 +22,60 @@ import {
 import { disciplineSchema } from "@/schemas/discipline"
 import { z } from "zod"
 
+/**
+ * Route parameters type definition
+ *
+ * @typedef {Object} RouteParams
+ * @property {Promise<{id: string}>} params - Route parameters containing discipline ID
+ */
 type RouteParams = {
     params: Promise<{ id: string }>
 }
 
 /**
  * GET /api/discipline/{id}
+ *
+ * Retrieves detailed information about a specific discipline including
+ * teacher details, study year, learning cycle, and event statistics.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the discipline ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - id: Discipline ID
+ *   - nume: Discipline name
+ *   - semestru: Semester (1 or 2)
+ *   - anStudiu: Study year number
+ *   - anStudiuId: Study year ID
+ *   - ciclu: Learning cycle name
+ *   - cicluId: Learning cycle ID
+ *   - profesor: Teacher object with id, full name, and email (or null)
+ *   - numarEvenimente: Number of associated events
+ *   - createdAt: Creation timestamp
+ *   - updatedAt: Last update timestamp
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {404} If discipline with given ID does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/discipline/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: {
+ * //     id: "cm123...",
+ * //     nume: "Programare Web",
+ * //     semestru: 1,
+ * //     anStudiu: 2,
+ * //     ciclu: "Licență",
+ * //     profesor: { id: "...", nume: "Prof. dr. Ion Popescu", email: "ion.popescu@..." },
+ * //     numarEvenimente: 24,
+ * //     ...
+ * //   }
+ * // }
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAuth()
@@ -80,6 +138,41 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 /**
  * PUT /api/discipline/{id}
+ *
+ * Updates an existing discipline's properties.
+ * Validates all fields and updates associations with teachers, study years, and learning cycles.
+ * The updating user's ID is automatically recorded.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the discipline ID
+ *
+ * @body {Object} [request.body] - Discipline update data (all fields optional)
+ * @body {string} [request.body.nume] - New discipline name
+ * @body {number} [request.body.semestru] - New semester (1 or 2)
+ * @body {string} [request.body.profesorId] - New teacher ID (can be null)
+ * @body {string} [request.body.anStudiuId] - New study year ID
+ * @body {string} [request.body.cicluId] - New learning cycle ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If discipline does not exist
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: PUT /api/discipline/cm123...
+ * // Body: { "nume": "Programare Web Avansată", "semestru": 2 }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Disciplină actualizată cu succes" }
+ * // }
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
@@ -143,6 +236,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 /**
  * DELETE /api/discipline/{id}
+ *
+ * Deletes a discipline if it has no dependencies (events).
+ * Prevents deletion if the discipline is being used by any events in the schedule.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ * @param {RouteParams} params - Route parameters containing the discipline ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {404} If discipline does not exist
+ * @throws {409} If discipline has associated events
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: DELETE /api/discipline/cm123...
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Disciplină ștearsă cu succes" }
+ * // }
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()

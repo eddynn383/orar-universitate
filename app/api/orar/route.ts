@@ -1,3 +1,15 @@
+/**
+ * @fileoverview API routes for managing university schedules (Orar)
+ *
+ * This module handles CRUD operations for schedule events, which represent
+ * scheduled classes/activities in the university timetable. Each event includes
+ * information about timing, location (classroom), teacher, discipline, groups,
+ * and recurrence patterns. The module also implements schedule conflict detection
+ * to prevent double-booking of teachers or classrooms.
+ *
+ * @module app/api/orar
+ */
+
 // app/api/orar/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,22 +27,69 @@ import { z } from "zod"
 
 /**
  * GET /api/orar
- * Returnează lista completă a intrărilor din orar
- * 
- * Query params:
- * - page: numărul paginii (default: 1)
- * - limit: numărul de rezultate per pagină (default: 50, max: 100)
- * - an: anul de studiu (1, 2, 3)
- * - ciclu: tipul de învățământ (licenta, master)
- * - semestru: semestrul (1, 2)
- * - grupa: ID-ul sau numele grupei
- * - profesor: ID-ul profesorului
- * - disciplina: ID-ul disciplinei
- * - sala: ID-ul sălii
- * - zi: ziua săptămânii (LUNI, MARTI, etc.)
- * - anUniversitar: anul universitar (ex: "2024-2025")
- * 
- * Requires: Authenticated user
+ *
+ * Retrieves a paginated list of schedule events with comprehensive filtering options.
+ * Events represent scheduled classes/activities including lectures, seminars, labs, and practicals.
+ * Each event includes detailed information about the teacher, discipline, classroom, groups, and timing.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [anUniversitar] - Filter by academic year (e.g., "2024-2025")
+ * @query {string} [ciclu] - Filter by learning type/cycle name (case-insensitive)
+ * @query {number} [semestru] - Filter by semester (1 or 2)
+ * @query {number} [an] - Filter by study year number (1-6)
+ * @query {string} [profesor] - Filter by teacher ID
+ * @query {string} [disciplina] - Filter by discipline ID
+ * @query {string} [sala] - Filter by classroom ID
+ * @query {string} [zi] - Filter by day of week (LUNI, MARTI, MIERCURI, JOI, VINERI)
+ * @query {string} [grupa] - Filter by group ID
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of event objects with:
+ *     - id: Event ID
+ *     - zi: Day of week
+ *     - oraInceput: Start time (HH:MM format)
+ *     - oraSfarsit: End time (HH:MM format)
+ *     - durata: Duration in minutes
+ *     - tipActivitate: Activity type (C=Curs/Lecture, S=Seminar, L=Laborator/Lab, P=Proiect/Practical)
+ *     - frecventa: Recurrence pattern (toate=every week, para=even weeks, impara=odd weeks)
+ *     - semestru: Semester number
+ *     - anUniversitar: Academic year string
+ *     - ciclu: Learning cycle name
+ *     - profesor: Teacher details (id, name, email)
+ *     - disciplina: Discipline details (id, name, study year)
+ *     - sala: Classroom details (id, name, building, capacity)
+ *     - grupe: Array of associated groups
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/orar?an=1&ciclu=licenta&semestru=1&zi=LUNI&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{
+ * //     id: "...",
+ * //     zi: "LUNI",
+ * //     oraInceput: "08:00",
+ * //     oraSfarsit: "10:00",
+ * //     tipActivitate: "C",
+ * //     frecventa: "toate",
+ * //     profesor: { id: "...", nume: "Prof. Ion Popescu", email: "..." },
+ * //     disciplina: { id: "...", nume: "Matematică", anStudiu: 1 },
+ * //     sala: { id: "...", nume: "A101", cladire: "Corp A" },
+ * //     grupe: [{ id: "...", nume: "A1", anStudiu: 1 }]
+ * //   }],
+ * //   meta: { total: 25, page: 1, limit: 10, totalPages: 3 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     // Verifică autentificarea
@@ -244,25 +303,60 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/orar
- * Creează o nouă intrare în orar
- * 
- * Body:
- * {
- *   zi: "LUNI" | "MARTI" | "MIERCURI" | "JOI" | "VINERI",
- *   oraInceput: "08:00",
- *   oraSfarsit: "10:00",
- *   tipActivitate: "C" | "S" | "L" | "P",
- *   frecventa: "toate" | "para" | "impara",
- *   semestru: 1 | 2,
- *   anUniversitarId: "...",
- *   cicluId: "...",
- *   profesorId: "...",
- *   disciplinaId: "...",
- *   salaId: "...",
- *   grupeIds: ["...", "..."]
- * }
- * 
- * Requires: ADMIN or SECRETAR role
+ *
+ * Creates a new schedule event in the university timetable.
+ * Validates the event data and checks for scheduling conflicts (teacher or classroom double-booking)
+ * before creating the event. Automatically associates the event with specified student groups.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The event data
+ * @body {string} request.body.zi - Day of week (LUNI, MARTI, MIERCURI, JOI, VINERI)
+ * @body {string} request.body.oraInceput - Start time in HH:MM format (e.g., "08:00")
+ * @body {string} request.body.oraSfarsit - End time in HH:MM format (e.g., "10:00")
+ * @body {string} request.body.tipActivitate - Activity type (C=Lecture, S=Seminar, L=Lab, P=Practical)
+ * @body {string} [request.body.frecventa="toate"] - Recurrence (toate=all weeks, para=even weeks, impara=odd weeks)
+ * @body {number} request.body.semestru - Semester (1 or 2)
+ * @body {string} request.body.anUniversitarId - Academic year ID (must exist)
+ * @body {string} request.body.cicluId - Learning type/cycle ID (must exist)
+ * @body {string} request.body.profesorId - Teacher ID (must exist)
+ * @body {string} request.body.disciplinaId - Discipline ID (must exist)
+ * @body {string} request.body.salaId - Classroom ID (must exist)
+ * @body {string[]} [request.body.grupeIds=[]] - Array of group IDs to associate with this event
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (invalid time format, missing required fields)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin or secretary
+ * @throws {409} If schedule conflict detected (teacher or classroom already booked)
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin or Secretary role
+ *
+ * @example
+ * // Request: POST /api/orar
+ * // Body: {
+ * //   "zi": "LUNI",
+ * //   "oraInceput": "08:00",
+ * //   "oraSfarsit": "10:00",
+ * //   "tipActivitate": "C",
+ * //   "frecventa": "toate",
+ * //   "semestru": 1,
+ * //   "anUniversitarId": "cm123...",
+ * //   "cicluId": "cm456...",
+ * //   "profesorId": "cm789...",
+ * //   "disciplinaId": "cm012...",
+ * //   "salaId": "cm345...",
+ * //   "grupeIds": ["cm678...", "cm901..."]
+ * // }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm234...", message: "Eveniment creat cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     // Verifică autorizarea (admin sau secretar)
@@ -348,7 +442,42 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Helper pentru verificarea conflictelor de orar
+/**
+ * Checks for scheduling conflicts with existing events.
+ *
+ * Verifies that neither the teacher nor the classroom are already booked
+ * for the specified time slot, day, semester, and academic year. Takes into
+ * account the recurrence pattern (toate/para/impara) to avoid false conflicts
+ * between alternating weeks.
+ *
+ * @async
+ * @param {Object} data - The event data to check for conflicts
+ * @param {string} data.day - Day of week
+ * @param {string} data.startHour - Start time in HH:MM format
+ * @param {string} data.endHour - End time in HH:MM format
+ * @param {number} data.semester - Semester number
+ * @param {string} data.academicYearId - Academic year ID
+ * @param {string} data.teacherId - Teacher ID
+ * @param {string} data.classroomId - Classroom ID
+ * @param {string} data.learningId - Learning type ID
+ * @param {string} [data.eventRecurrence] - Recurrence pattern (toate/para/impara)
+ *
+ * @returns {Promise<string[]>} Array of conflict messages (empty if no conflicts)
+ *
+ * @example
+ * const conflicts = await checkScheduleConflicts({
+ *   day: "LUNI",
+ *   startHour: "08:00",
+ *   endHour: "10:00",
+ *   semester: 1,
+ *   academicYearId: "cm123...",
+ *   teacherId: "cm456...",
+ *   classroomId: "cm789...",
+ *   learningId: "cm012...",
+ *   eventRecurrence: "toate"
+ * })
+ * // Returns: [] if no conflicts, or ["Profesorul este ocupat în intervalul 08:00-10:00"] if conflict exists
+ */
 async function checkScheduleConflicts(data: {
     day: string
     startHour: string

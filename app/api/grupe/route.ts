@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing student groups (Grupe de Studiu)
+ *
+ * This module handles CRUD operations for student groups, which represent
+ * organized sets of students within a study year and semester. Each group
+ * is associated with a study year, learning type (cycle), and has schedule events.
+ *
+ * @module app/api/grupe
+ */
+
 // app/api/grupe/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,14 +25,55 @@ import { z } from "zod"
 
 /**
  * GET /api/grupe
- * Returnează lista grupelor de studiu
- * 
- * Query params:
- * - page, limit: paginare
- * - an: anul de studiu (1, 2, 3)
- * - ciclu: tipul de învățământ (licenta, master)
- * - semestru: semestrul (1, 2)
- * - search: căutare după nume
+ *
+ * Retrieves a paginated list of student groups with their associated metadata and statistics.
+ * Student groups represent organized sets of students within a study year, semester, and learning cycle.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {number} [an] - Filter by study year number (1-6)
+ * @query {string} [ciclu] - Filter by learning type/cycle name (case-insensitive)
+ * @query {number} [semestru] - Filter by semester (1 or 2)
+ * @query {string} [search] - Search by group name (case-insensitive)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of group objects with:
+ *     - id: Group ID
+ *     - nume: Group name
+ *     - numarGrupa: Group number
+ *     - semestru: Semester number
+ *     - anStudiu: Study year number
+ *     - anStudiuId: Study year ID
+ *     - ciclu: Learning cycle name
+ *     - cicluId: Learning type ID
+ *     - numarEvenimente: Number of associated schedule events
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/grupe?ciclu=licenta&an=1&semestru=1&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{
+ * //     id: "...",
+ * //     nume: "A1",
+ * //     numarGrupa: "1",
+ * //     semestru: 1,
+ * //     anStudiu: 1,
+ * //     ciclu: "Licență",
+ * //     numarEvenimente: 15
+ * //   }],
+ * //   meta: { total: 5, page: 1, limit: 10, totalPages: 1 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -112,16 +163,45 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/grupe
- * Creează o nouă grupă
- * 
- * Body:
- * {
- *   nume: "A1",
- *   numarGrupa: 1,
- *   semestru: 1,
- *   anStudiuId: "...",
- *   cicluId: "..."
- * }
+ *
+ * Creates a new student group within a study year and learning cycle.
+ * Validates that the group name is unique within the specified study year.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The group data
+ * @body {string} request.body.nume - Group name (e.g., "A1", "B2")
+ * @body {number} request.body.numarGrupa - Group number
+ * @body {number} request.body.semestru - Semester (1 or 2)
+ * @body {string} request.body.anStudiuId - Study year ID (must exist)
+ * @body {string} request.body.cicluId - Learning type/cycle ID (must exist)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (missing required fields or invalid format)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {409} If a group with the same name already exists for the study year
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/grupe
+ * // Body: {
+ * //   "nume": "A1",
+ * //   "numarGrupa": 1,
+ * //   "semestru": 1,
+ * //   "anStudiuId": "cm123...",
+ * //   "cicluId": "cm456..."
+ * // }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm789...", message: "Grupă creată cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()

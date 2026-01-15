@@ -1,3 +1,13 @@
+/**
+ * @fileoverview API routes for managing classrooms (Săli)
+ *
+ * This module handles CRUD operations for classrooms/rooms where classes are held.
+ * Each classroom has a name, building location, capacity, and tracks associated
+ * schedule events. Classrooms are essential resources in the scheduling system.
+ *
+ * @module app/api/sali
+ */
+
 // app/api/sali/route.ts
 
 import { NextRequest } from "next/server"
@@ -15,12 +25,47 @@ import { z } from "zod"
 
 /**
  * GET /api/sali
- * Returnează lista sălilor de clasă
- * 
- * Query params:
- * - page, limit: paginare
- * - cladire: filtrare după clădire
- * - search: căutare după nume
+ *
+ * Retrieves a paginated list of classrooms with their details and usage statistics.
+ * Classrooms represent physical locations where classes are held.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @query {number} [page=1] - Page number for pagination
+ * @query {number} [limit=50] - Number of items per page (max: 100)
+ * @query {string} [search] - Search by classroom name (case-insensitive)
+ * @query {string} [cladire] - Filter by building name (case-insensitive)
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - data: Array of classroom objects with:
+ *     - id: Classroom ID
+ *     - nume: Classroom name/number
+ *     - cladire: Building name
+ *     - capacitate: Maximum capacity (number of seats)
+ *     - numarEvenimente: Number of associated schedule events
+ *     - createdAt: Creation timestamp
+ *     - updatedAt: Last update timestamp
+ *   - meta: Pagination metadata (total, page, limit, totalPages)
+ *
+ * @throws {401} If user is not authenticated
+ * @throws {500} If database operation fails
+ *
+ * @requires Authentication
+ *
+ * @example
+ * // Request: GET /api/sali?cladire=Corp%20A&search=A1&page=1&limit=10
+ * // Response: {
+ * //   success: true,
+ * //   data: [{
+ * //     id: "...",
+ * //     nume: "A101",
+ * //     cladire: "Corp A",
+ * //     capacitate: 100,
+ * //     numarEvenimente: 25
+ * //   }],
+ * //   meta: { total: 5, page: 1, limit: 10, totalPages: 1 }
+ * // }
  */
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
@@ -88,14 +133,41 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/sali
- * Creează o nouă sală
- * 
- * Body:
- * {
- *   nume: "A101",
- *   cladire: "Corp A",
- *   capacitate: 100
- * }
+ *
+ * Creates a new classroom in the system.
+ * Validates that the classroom name is unique across all classrooms.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming Next.js request object
+ *
+ * @body {Object} request.body - The classroom data
+ * @body {string} request.body.nume - Classroom name/number (e.g., "A101", "B203")
+ * @body {string} request.body.cladire - Building name (e.g., "Corp A", "Corp B")
+ * @body {number} request.body.capacitate - Maximum seating capacity
+ *
+ * @returns {Promise<Response>} JSON response containing:
+ *   - success: true
+ *   - data: { id, message }
+ *
+ * @throws {400} If validation fails (missing required fields)
+ * @throws {401} If user is not authenticated
+ * @throws {403} If user is not an admin
+ * @throws {409} If a classroom with the same name already exists
+ * @throws {500} If database operation fails
+ *
+ * @requires Admin role
+ *
+ * @example
+ * // Request: POST /api/sali
+ * // Body: {
+ * //   "nume": "A101",
+ * //   "cladire": "Corp A",
+ * //   "capacitate": 100
+ * // }
+ * // Response: {
+ * //   success: true,
+ * //   data: { id: "cm123...", message: "Sală creată cu succes" }
+ * // }
  */
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()
