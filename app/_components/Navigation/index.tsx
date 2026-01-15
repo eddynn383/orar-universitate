@@ -35,7 +35,7 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/cadre', label: 'Cadre didactice' },
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
-        { href: '/classrooms', label: 'Sali clasa' },
+        { href: '/sali', label: 'Sali clasa' },
         { href: '/utilizatori', label: 'Utilizatori' }
     ]
 
