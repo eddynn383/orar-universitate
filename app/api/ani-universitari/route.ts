@@ -9,8 +9,6 @@
  * @module app/api/ani-universitari
  */
 
-// app/api/ani-universitari/route.ts
-
 import { NextRequest } from "next/server"
 import prisma from "@/lib/prisma"
 import {
@@ -62,6 +60,7 @@ import { z } from "zod"
  * //   meta: { total: 5, page: 1, limit: 10, totalPages: 1 }
  * // }
  */
+
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
     if (!authResult.success) {
@@ -121,6 +120,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
+
 /**
  * POST /api/ani-universitari
  *
@@ -155,6 +155,7 @@ export async function GET(request: NextRequest) {
  * //   data: { id: "...", perioada: "2024-2025", message: "An universitar creat cu succes" }
  * // }
  */
+
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()
     if (!authResult.success) {

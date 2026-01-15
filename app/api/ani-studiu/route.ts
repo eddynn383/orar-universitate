@@ -8,8 +8,6 @@
  * @module app/api/ani-studiu
  */
 
-// app/api/ani-studiu/route.ts
-
 import { NextRequest } from "next/server"
 import prisma from "@/lib/prisma"
 import {
@@ -22,6 +20,7 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
+
 /**
  * Validation schema for study year creation and updates
  *
@@ -29,10 +28,12 @@ import { z } from "zod"
  * @property {number} year - Year number (1-6)
  * @property {string} learningTypeId - Learning type (cycle) ID
  */
+
 const studyYearSchema = z.object({
     year: z.number().int().min(1).max(6),
     learningTypeId: z.string().min(1, "Ciclul de învățământ este obligatoriu")
 })
+
 
 /**
  * GET /api/ani-studiu
@@ -70,6 +71,7 @@ const studyYearSchema = z.object({
  * //   meta: { total: 3, page: 1, limit: 10, totalPages: 1 }
  * // }
  */
+
 export async function GET(request: NextRequest) {
     const authResult = await requireAuth()
     if (!authResult.success) {
@@ -152,6 +154,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
+
 /**
  * POST /api/ani-studiu
  *
@@ -186,6 +189,7 @@ export async function GET(request: NextRequest) {
  * //   data: { id: "...", an: 1, ciclu: "Licență", message: "An de studiu creat cu succes" }
  * // }
  */
+
 export async function POST(request: NextRequest) {
     const authResult = await requireAdmin()
     if (!authResult.success) {

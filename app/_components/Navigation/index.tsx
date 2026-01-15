@@ -13,7 +13,6 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/Sheet'
 import { Button } from '@/components/Button'
 import { Session } from 'next-auth'
-import { checkRole } from '@/auth'
 import { UserNav } from '../UserNav'
 import { cn } from '../../../lib/utils';
 

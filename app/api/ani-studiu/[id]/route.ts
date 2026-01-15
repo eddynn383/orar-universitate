@@ -8,8 +8,6 @@
  * @module app/api/ani-studiu/[id]
  */
 
-// app/api/ani-studiu/[id]/route.ts
-
 import { NextRequest } from "next/server"
 import prisma from "@/lib/prisma"
 import {
@@ -21,6 +19,7 @@ import {
 } from "@/lib/api-utils"
 import { z } from "zod"
 
+
 /**
  * Validation schema for study year updates
  *
@@ -28,10 +27,12 @@ import { z } from "zod"
  * @property {number} year - Year number (1-6)
  * @property {string} learningTypeId - Learning type (cycle) ID
  */
+
 const studyYearSchema = z.object({
     year: z.number().int().min(1).max(6),
     learningTypeId: z.string().min(1, "Ciclul de învățământ este obligatoriu")
 })
+
 
 /**
  * Route parameters type definition
@@ -39,9 +40,11 @@ const studyYearSchema = z.object({
  * @typedef {Object} RouteParams
  * @property {Promise<{id: string}>} params - Route parameters containing study year ID
  */
+
 type RouteParams = {
     params: Promise<{ id: string }>
 }
+
 
 /**
  * GET /api/ani-studiu/{id}
@@ -83,6 +86,7 @@ type RouteParams = {
  * //   }
  * // }
  */
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAuth()
     if (!authResult.success) {
@@ -182,6 +186,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+
 /**
  * PUT /api/ani-studiu/{id}
  *
@@ -218,6 +223,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * //   data: { id: "cm123...", message: "An de studiu actualizat cu succes" }
  * // }
  */
+
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
     if (!authResult.success) {
@@ -304,6 +310,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+
 /**
  * DELETE /api/ani-studiu/{id}
  *
@@ -333,6 +340,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * //   data: { id: "cm123...", message: "An de studiu șters cu succes" }
  * // }
  */
+
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const authResult = await requireAdmin()
     if (!authResult.success) {
