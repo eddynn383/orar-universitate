@@ -30,7 +30,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
 
-    const { startUpload, permittedFileInfo } = useUploadThing(endpoint, {
+    const { startUpload } = useUploadThing(endpoint, {
         onClientUploadComplete: (res) => {
             if (res?.[0]?.url) {
                 onChange(res[0].url)
@@ -47,10 +47,6 @@ export function ImageUpload({
         },
     })
 
-    const fileTypes = permittedFileInfo?.config
-        ? Object.keys(permittedFileInfo.config)
-        : []
-
     const onDrop = useCallback(
         async (acceptedFiles: File[]) => {
             if (acceptedFiles.length > 0) {
@@ -63,9 +59,7 @@ export function ImageUpload({
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: fileTypes.length > 0
-            ? generateClientDropzoneAccept(fileTypes)
-            : { "image/*": [] },
+        accept: { "image/*": [] },
         maxFiles: 1,
         disabled: disabled || isUploading,
     })

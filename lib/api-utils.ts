@@ -23,9 +23,9 @@ import { NextRequest, NextResponse } from "next/server"
  *   code: "NOT_FOUND"
  * }
  */
-export type ApiResponse<T = any> = {
+export interface SuccessResponse<T> {
     /** Indicates a successful response */
-    success: true
+    success: boolean
     /** The response data payload */
     data: T
     /** Optional metadata for pagination and additional context */
@@ -39,14 +39,25 @@ export type ApiResponse<T = any> = {
         /** Total number of pages available */
         totalPages?: number
     }
-} | {
-    /** Indicates a failed response */
+}
+
+export interface ErrorResponse {
     success: false
-    /** Human-readable error message */
     error: string
-    /** Machine-readable error code for programmatic handling */
     code?: string
 }
+
+export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse
+
+
+// | {
+//     /** Indicates a failed response */
+//     success: false
+//     /** Human-readable error message */
+//     error: string
+//     /** Machine-readable error code for programmatic handling */
+//     code?: string
+// }
 
 /**
  * Creates a standardized successful API response.
@@ -80,9 +91,18 @@ export type ApiResponse<T = any> = {
  * // Created resource response
  * return successResponse(newUser, undefined, 201)
  */
-export function successResponse<T>(data: T, meta?: ApiResponse<T>['meta'], status = 200): NextResponse {
-    const response: ApiResponse<T> = { success: true, data }
-    if (meta) response.meta = meta
+
+export function successResponse<T>(
+    data: T,
+    meta?: SuccessResponse<T>['meta'],
+    status = 200
+): NextResponse {
+    const response: SuccessResponse<T> = {
+        success: true,
+        data,
+        ...(meta && { meta }),
+    }
+
     return NextResponse.json(response, { status })
 }
 
@@ -117,13 +137,18 @@ export function successResponse<T>(data: T, meta?: ApiResponse<T>['meta'], statu
  *   API_ERRORS.UNAUTHORIZED.code
  * )
  */
+
 export function errorResponse(
     error: string,
     status = 400,
     code?: string
 ): NextResponse {
-    const response: ApiResponse = { success: false, error }
-    if (code) response.code = code
+    const response: ErrorResponse = {
+        success: false,
+        error,
+        ...(code && { code }),
+    }
+
     return NextResponse.json(response, { status })
 }
 
