@@ -73,6 +73,8 @@ model User {
     updatedGroups      Group[]      @relation("GroupUpdatedBy")
     createdClassrooms  Classroom[]  @relation("ClassroomCreatedBy")
     updatedClassrooms  Classroom[]  @relation("ClassroomUpdatedBy")
+    createdStudents    Student[]    @relation("StudentCreatedBy")
+    updatedStudents    Student[]    @relation("StudentUpdatedBy")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -187,6 +189,8 @@ model Discipline {
     studyYear      StudyYear     @relation(fields: [studyYearId], references: [id], onDelete: Cascade)
     semester       Int           @default(1)
     events         Event[]
+    grades         Grade[]
+    students       StudentDiscipline[]
 
     createdBy   User?   @relation("DisciplineCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
@@ -252,6 +256,7 @@ model Group {
     studyYear      StudyYear     @relation(fields: [studyYearId], references: [id])
     semester       Int           @default(1)
     events         EventGroup[]
+    students       Student[]
 
     createdBy   User?   @relation("GroupCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
@@ -274,6 +279,85 @@ model EventGroup {
 
     @@id([eventId, groupId]) // composite PK
     @@map("event_groups")
+}
+
+model Student {
+    id        String  @id @default(cuid())
+    firstname String
+    lastname  String
+    image     String?
+    email     String  @unique
+
+    // Cod de identificare public (pentru GDPR - afișare note publice)
+    publicId String @unique
+
+    // Date personale
+    sex           Sex
+    cnpEncrypted  String // CNP criptat pentru securitate
+    birthDate     DateTime
+    birthPlace    String
+    ethnicity     String?
+    religion      String?
+    citizenship   String  @default("Română")
+    maritalStatus String  @default("Necăsătorit/ă")
+
+    // Situație socială
+    socialSituation        String?
+    isOrphan               Boolean @default(false)
+    needsSpecialConditions Boolean @default(false)
+
+    // Familie
+    parentsNames String?
+
+    // Adresă
+    residentialAddress String?
+
+    // Informații medicale
+    specialMedicalCondition String?
+    disability              Disability @default(NONE)
+
+    // Relații
+    groupId String?
+    group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+    grades            Grade[]
+    studentDiscipline StudentDiscipline[]
+
+    createdBy   User?   @relation("StudentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("StudentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("students")
+}
+
+model StudentDiscipline {
+    student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+    studentId    String
+    discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+    disciplineId String
+
+    @@id([studentId, disciplineId])
+    @@map("student_disciplines")
+}
+
+model Grade {
+    id           String   @id @default(cuid())
+    value        Float // Nota (ex: 10, 9.5, etc.)
+    gradeType    String // ex: "Examen", "Colocviu", "Laborator", "Prezentare"
+    date         DateTime @default(now())
+    studentId    String
+    student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+    disciplineId String
+    discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@index([studentId, disciplineId])
+    @@map("grades")
 }
 
 model Log {
@@ -303,4 +387,15 @@ enum LearningTypes {
     SEMINAR
     LABORATOR
     PRACTICA
+}
+
+enum Sex {
+    MASCULIN
+    FEMININ
+}
+
+enum Disability {
+    NONE
+    GRAD_1
+    GRAD_2
 }
