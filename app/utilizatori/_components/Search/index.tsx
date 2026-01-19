@@ -27,7 +27,7 @@ export function SearchInput({ placeholder = "Caută..." }: SearchInputProps) {
     }, 300)
 
     return (
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-[320px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-primary-600" />
             <Input
                 className="bg-primary-100 rounded-lg pl-10"

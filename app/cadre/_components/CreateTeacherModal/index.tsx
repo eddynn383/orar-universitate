@@ -3,12 +3,19 @@
 import { Dialog, DialogContent, DialogTrigger } from "@/components/Dialog"
 import { TeacherForm } from "../TeacherForm"
 import { useState } from "react"
+import { User } from "@/types/entities"
 
 type CreateTeacherModalProps = {
     trigger: React.ReactNode
+    user?: {
+        id: string
+        role: string
+        email?: string
+        name?: string
+    }
 }
 
-export function CreateTeacherModal({ trigger }: CreateTeacherModalProps) {
+export function CreateTeacherModal({ trigger, user }: CreateTeacherModalProps) {
     const [showNewDialog, setShowNewDialog] = useState(false)
 
     return (
@@ -17,7 +24,7 @@ export function CreateTeacherModal({ trigger }: CreateTeacherModalProps) {
                 {trigger}
             </DialogTrigger>
             <DialogContent size="L">
-                <TeacherForm onSuccess={() => setShowNewDialog(false)} />
+                <TeacherForm user={user} onSuccess={() => setShowNewDialog(false)} />
             </DialogContent>
         </Dialog>
     )

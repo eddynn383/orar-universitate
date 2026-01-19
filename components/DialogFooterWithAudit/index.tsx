@@ -4,21 +4,22 @@
 
 import { ReactNode } from "react"
 import { AuditInfo } from "../AuditInfo"
+import { DialogFooter } from "../Dialog"
+import { AuditUser } from "@/types/global"
 
-type AuditUser = {
-    id: string
-    name: string | null
-    email: string | null
-    image: string | null
-} | null
+// type AuditUser = {
+//     id: string
+//     name: string | null
+//     email: string | null
+//     image: string | null
+// } | null
 
 type DialogFooterWithAuditProps = {
     children: ReactNode
-    createdBy?: AuditUser
     createdAt?: Date | string
-    updatedBy?: AuditUser
     updatedAt?: Date | string
-    className?: string
+    createdBy?: AuditUser
+    updatedBy?: AuditUser
 }
 
 export function DialogFooterWithAudit({
@@ -27,28 +28,26 @@ export function DialogFooterWithAudit({
     createdAt,
     updatedBy,
     updatedAt,
-    className = "",
 }: DialogFooterWithAuditProps) {
-    const hasAuditInfo = createdBy || createdAt || updatedBy || updatedAt
 
     return (
-        <div className={`flex items-end justify-between gap-4 w-full ${className}`}>
+        <DialogFooter className="sm:justify-end">
             {/* Audit info - left side */}
-            <div className="flex-1 min-w-0">
-                {hasAuditInfo && (
+            <div className="flex flex-1 min-w-0 items-center">
+                {(createdBy !== null || createdBy !== undefined) &&
                     <AuditInfo
-                        createdBy={createdBy}
+                        createdByName={createdBy?.name}
+                        updatedByName={updatedBy?.name}
                         createdAt={createdAt}
-                        updatedBy={updatedBy}
                         updatedAt={updatedAt}
                     />
-                )}
+                }
             </div>
 
             {/* Action buttons - right side */}
             <div className="flex items-center gap-4 flex-shrink-0">
                 {children}
             </div>
-        </div>
+        </DialogFooter>
     )
 }

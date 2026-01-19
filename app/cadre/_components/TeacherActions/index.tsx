@@ -7,6 +7,8 @@ import { TeacherForm } from "../TeacherForm"
 import { Button } from "@/components/Button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/Dropdown"
 import { DeleteTeacherForm } from "../DeleteTeacherForm"
+import { AuditUser } from "@/types/global"
+import { User } from "@/types/entities"
 
 type TeacherActionsProps = {
     defaultValues?: {
@@ -17,10 +19,20 @@ type TeacherActionsProps = {
         lastname: string
         email: string
         phone?: string
-    }
+        createdAt?: Date | string
+        updatedAt?: Date | string
+        createdBy?: AuditUser
+        updatedBy?: AuditUser
+    },
+    user: {
+        id: string
+        role: string
+        email?: string
+        name?: string
+    },
 }
 
-export function TeacherActions({ defaultValues }: TeacherActionsProps) {
+export function TeacherActions({ defaultValues, user }: TeacherActionsProps) {
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -48,6 +60,7 @@ export function TeacherActions({ defaultValues }: TeacherActionsProps) {
                 <DialogContent size="L">
                     <TeacherForm
                         defaultValues={defaultValues}
+                        user={user}
                         onSuccess={() => setShowEditDialog(false)}
                     />
                 </DialogContent>

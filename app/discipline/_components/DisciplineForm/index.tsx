@@ -234,24 +234,22 @@ export function DisciplineForm({ defaultValues, learningTypes, teachers, onSucce
                     </FieldGroup>
                 </FieldSet>
             </DialogBody>
-            <DialogFooter className="sm:justify-end">
-                <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
-                    <Button type="submit" variant="brand" disabled={pending}>
-                        <Spinner
-                            className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
-                            data-loading={pending}
-                        />
-                        <span data-loading={pending} className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0">
-                            {submitText}
-                        </span>
+            <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
+                <Button type="submit" variant="brand" disabled={pending}>
+                    <Spinner
+                        className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
+                        data-loading={pending}
+                    />
+                    <span data-loading={pending} className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0">
+                        {submitText}
+                    </span>
+                </Button>
+                <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                        Închide
                     </Button>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Închide
-                        </Button>
-                    </DialogClose>
-                </DialogFooterWithAudit>
-            </DialogFooter>
+                </DialogClose>
+            </DialogFooterWithAudit>
         </form>
     )
 }

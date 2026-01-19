@@ -2,7 +2,7 @@
 
 import { createClassroom, updateClassroom } from "@/actions/classroom";
 import { Button } from "@/components/Button";
-import { DialogBody, DialogClose, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/Dialog";
+import { DialogBody, DialogClose, DialogDescription, DialogHeader, DialogTitle } from "@/components/Dialog";
 import { DialogFooterWithAudit } from "@/components/DialogFooterWithAudit";
 import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@/components/Field";
 import { Input } from "@/components/Input";
@@ -112,27 +112,25 @@ export function ClassroomForm({ defaultValues, onSuccess }: ClassroomFormProps) 
                     </FieldGroup>
                 </FieldSet>
             </DialogBody>
-            <DialogFooter className="sm:justify-end">
-                <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
-                    <Button type="submit" variant="brand" disabled={pending}>
-                        <Spinner
-                            className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
-                            data-loading={pending}
-                        />
-                        <span
-                            data-loading={pending}
-                            className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0"
-                        >
-                            {submitText}
-                        </span>
+            <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
+                <Button type="submit" variant="brand" disabled={pending}>
+                    <Spinner
+                        className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
+                        data-loading={pending}
+                    />
+                    <span
+                        data-loading={pending}
+                        className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0"
+                    >
+                        {submitText}
+                    </span>
+                </Button>
+                <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                        Închide
                     </Button>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Închide
-                        </Button>
-                    </DialogClose>
-                </DialogFooterWithAudit>
-            </DialogFooter>
+                </DialogClose>
+            </DialogFooterWithAudit>
         </form>
     )
 }

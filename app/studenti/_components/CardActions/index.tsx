@@ -15,6 +15,8 @@ export async function CardActions({ studentId }: CardActionsProps) {
         return null
     }
 
+    console.log("student: ", student)
+
     // Decriptăm CNP-ul pentru a-l trimite la form
     const decryptedCNP = decryptCNP(student.cnpEncrypted)
 
@@ -42,18 +44,8 @@ export async function CardActions({ studentId }: CardActionsProps) {
         image: student.image,
         createdAt: student.createdAt,
         updatedAt: student.updatedAt,
-        createdBy: student.createdBy
-            ? {
-                  id: student.createdBy.id,
-                  name: student.createdBy.name || "Unknown",
-              }
-            : undefined,
-        updatedBy: student.updatedBy
-            ? {
-                  id: student.updatedBy.id,
-                  name: student.updatedBy.name || "Unknown",
-              }
-            : undefined,
+        createdById: student.createdById,
+        updatedById: student.updatedById
     }
 
     return <StudentActions defaultValues={defaultValues} />

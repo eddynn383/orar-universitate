@@ -12,6 +12,7 @@ import { Suspense } from "react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { Button } from "@/components/Button"
 import { AdminOnlyServer } from "@/components/RoleGateServer"
+import { getCurrentUser } from "@/lib/auth-action"
 
 type TeachersPageProps = {
     searchParams: Promise<{ search?: string }>
@@ -19,6 +20,9 @@ type TeachersPageProps = {
 
 export default async function TeachersPage({ searchParams }: TeachersPageProps) {
     const teachers = await getAllTeachers()
+    const user = await getCurrentUser()
+
+    console.log("user: ", user)
 
     const params = await searchParams
 
@@ -174,7 +178,10 @@ export default async function TeachersPage({ searchParams }: TeachersPageProps) 
                                                                                 <H2 className="text-lg pb-0">{teacher.firstname} {teacher.lastname}</H2>
                                                                             </div>
                                                                             <AdminOnlyServer>
-                                                                                <CardActions teacherId={teacher.id} />
+                                                                                {
+                                                                                    user &&
+                                                                                    <CardActions user={user} teacherId={teacher.id} />
+                                                                                }
                                                                             </AdminOnlyServer>
                                                                         </div>
                                                                     </CardContent>

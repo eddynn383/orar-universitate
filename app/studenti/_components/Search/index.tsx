@@ -23,7 +23,7 @@ export const SearchInput = () => {
     }, 300)
 
     return (
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full max-w-[320px]">
             <Input
                 type="text"
                 placeholder="Caută studenți..."

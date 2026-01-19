@@ -30,11 +30,13 @@ export function encryptCNP(cnp: string): string {
     return `${iv.toString("hex")}:${encrypted}`
 }
 
+
 /**
  * Decriptează un CNP criptat
  * @param encryptedCNP - CNP criptat în format hex (IV:encryptedData)
  * @returns CNP decriptat în format text clar
  */
+
 export function decryptCNP(encryptedCNP: string): string {
     if (!encryptedCNP) {
         throw new Error("CNP-ul criptat nu poate fi gol")

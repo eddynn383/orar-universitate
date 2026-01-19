@@ -3,13 +3,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
 import { Card, CardContent } from "@/components/Card"
 import { H1, H2, P } from "@/components/Typography"
-import { Mail, Shield } from "lucide-react"
+import { CirclePlus, Mail, Shield } from "lucide-react"
 import { CardActions } from "./_components/CardActions"
 import { CreateUserModal } from "./_components/CreateUserModal"
 import { SearchInput } from "./_components/Search"
 import { Suspense } from "react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { getAllUsers } from "@/data/user"
+import { AdminOnlyServer } from "@/components/RoleGateServer"
+import { Button } from "@/components/Button"
 
 type UsersPageProps = {
     searchParams: Promise<{ search?: string }>
@@ -55,20 +57,24 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     return (
         <div className="content grid grid-rows-[auto_1fr] h-full overflow-hidden">
             <div className="flex flex-col items-center border-b bg-primary-200 border-primary-300 p-6">
-                <div className="flex flex-col gap-1 w-full max-w-7xl">
-                    <H1 className="text-left text-2xl">Utilizatori</H1>
-                    <P className="text-lg [&:not(:first-child)]:mt-0">
-                        Gestionează utilizatorii care au acces la aplicație
-                    </P>
+                <div className="flex gap-2 w-full max-w-7xl">
+                    <div className="flex flex-col gap-2">
+                        <H1 className="text-left text-2xl">Utilizatori</H1>
+                        <P className="text-base [&:not(:first-child)]:mt-0">
+                            Gestionează utilizatorii care au acces la aplicație
+                        </P>
+                    </div>
+                    <div className="flex justify-end items-end gap-4 flex-1">
+                        <SearchInput placeholder="Caută utilizatori..." />
+                    </div>
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto">
                 <div className="flex flex-col items-center py-8 px-6">
                     <div className="flex flex-col gap-8 w-full max-w-7xl">
-                        <div className="flex w-full justify-between gap-4">
-                            <SearchInput placeholder="Caută utilizatori..." />
+                        {/* <div className="flex w-full justify-between gap-4">
                             <CreateUserModal />
-                        </div>
+                        </div> */}
                         <Suspense fallback={"Loading..."}>
                             {filteredUsers.length === 0 && searchQuery ? (
                                 <Empty>
@@ -145,6 +151,21 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                                             </li>
                                         )
                                     })}
+                                    <AdminOnlyServer>
+                                        <li key="year-create" className="min-h-[98px]">
+                                            <CreateUserModal
+                                                trigger={
+                                                    <Card className="bg-primary-100 h-full p-0 hover:bg-brand-400/20 hover:border-brand-400 transition-colors cursor-pointer">
+                                                        <CardContent className="h-full flex items-center justify-center p-0">
+                                                            <Button className="flex-col py-4 px-6 w-full h-full text-base" variant="text" size="L">
+                                                                <CirclePlus className="size-6" /> Adaugă utilizator
+                                                            </Button>
+                                                        </CardContent>
+                                                    </Card>
+                                                }
+                                            />
+                                        </li>
+                                    </AdminOnlyServer>
                                 </ul>
                             )}
                         </Suspense>

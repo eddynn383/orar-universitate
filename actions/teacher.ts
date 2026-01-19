@@ -35,9 +35,14 @@ export async function createTeacher(prevState: any, formData: FormData) {
 
 export async function updateTeacher(prevState: any, formData: FormData) {
     const data = Object.fromEntries(formData)
+    const userId = data.updatedBy as string
     const id = data.id as string
 
+    console.log("update Teacher data: ", data)
+
     const validation = teacherSchema.safeParse(data)
+
+    console.log("update Teacher validation: ", validation)
 
     if (!validation.success) {
         const { fieldErrors, formErrors } = z.flattenError(validation.error)
@@ -51,7 +56,10 @@ export async function updateTeacher(prevState: any, formData: FormData) {
     try {
         await prisma.teacher.update({
             where: { id },
-            data: validation.data
+            data: {
+                ...validation.data,
+                updatedById: userId
+            }
         })
         revalidatePath("/cadre")
         return { success: true, message: "Teacher updated successfully" }

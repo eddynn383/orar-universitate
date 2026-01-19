@@ -16,10 +16,10 @@ export type TimeSlot = typeof TIME_SLOTS[number]
 // Audit user type
 export type AuditUser = {
     id: string
-    name: string | null
-    email: string | null
-    image: string | null
-} | null
+    name: string
+    // email: string | null
+    // image: string | null
+}
 
 // CalendarEntry - formatul folosit de componenta Calendar
 // Aliniat cu schema Prisma Event (many-to-many cu groups)

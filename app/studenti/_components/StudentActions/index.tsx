@@ -7,7 +7,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/DropdownMenu"
+} from "@/components/Dropdown"
 import { Edit, EllipsisVertical, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { DeleteStudentForm } from "../DeleteStudentForm"
@@ -52,7 +52,7 @@ export function StudentActions({ defaultValues }: StudentActionsProps) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon-m">
                         <EllipsisVertical className="size-4" />
                     </Button>
                 </DropdownMenuTrigger>

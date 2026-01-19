@@ -15,7 +15,7 @@ export function CreateStudentModal({ trigger, groups }: CreateStudentModalProps)
     return (
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
-            <DialogContent>
+            <DialogContent size="L">
                 <StudentForm groups={groups} onSuccess={() => setShowNewDialog(false)} />
             </DialogContent>
         </Dialog>

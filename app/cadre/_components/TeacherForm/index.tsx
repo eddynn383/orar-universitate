@@ -12,6 +12,7 @@ import { useActionState, useEffect, useState } from "react";
 import { P } from "@/components/Typography";
 import { AuditUser } from "@/types/global";
 import { DialogFooterWithAudit } from "@/components/DialogFooterWithAudit";
+import { User } from "@/types/entities";
 
 const TITLES = [
     { name: "Fără titlu", value: "None" },
@@ -55,11 +56,17 @@ type TeacherFormProps = {
         updatedAt?: Date | string
         createdBy?: AuditUser
         updatedBy?: AuditUser
-    }
+    },
+    user?: {
+        id: string
+        role: string
+        email?: string
+        name?: string
+    },
     onSuccess?: () => void
 }
 
-export function TeacherForm({ defaultValues, onSuccess }: TeacherFormProps) {
+export function TeacherForm({ defaultValues, user, onSuccess }: TeacherFormProps) {
     const mode = defaultValues?.id ? 'edit' : 'create'
     const action = mode === 'edit' ? updateTeacher : createTeacher
 
@@ -91,8 +98,16 @@ export function TeacherForm({ defaultValues, onSuccess }: TeacherFormProps) {
             <DialogBody>
                 <FieldSet>
                     <FieldGroup>
+                        <div className="flex-1">
+                            <P className="text-sm">Campurile cu * sunt obligatorii</P>
+                        </div>
                         {mode === 'edit' && defaultValues?.id && (
-                            <input type="hidden" name="id" value={defaultValues.id} />
+                            <>
+                                <input type="hidden" name="id" value={defaultValues.id} />
+                                {
+                                    user && <input type="hidden" name="updatedBy" value={user.id} />
+                                }
+                            </>
                         )}
                         <div className="flex flex-1 gap-4">
                             <Field data-invalid={state?.errors?.image ? true : undefined}>
@@ -226,32 +241,27 @@ export function TeacherForm({ defaultValues, onSuccess }: TeacherFormProps) {
                     </div>
                 )}
             </DialogBody>
-            <DialogFooter className="flex items-center gap-4">
-                <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
-                    <div className="flex-1">
-                        <P className="text-sm">Campurile cu * sunt obligatorii</P>
-                    </div>
-                    <div className="flex gap-4">
-                        <Button type="submit" variant="brand" disabled={pending}>
-                            <Spinner
-                                className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
-                                data-loading={pending}
-                            />
-                            <span
-                                data-loading={pending}
-                                className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0"
-                            >
-                                {submitText}
-                            </span>
+            <DialogFooterWithAudit createdAt={defaultValues?.createdAt} updatedAt={defaultValues?.updatedAt} createdBy={defaultValues?.createdBy} updatedBy={defaultValues?.updatedBy} >
+                <div className="flex gap-4">
+                    <Button type="submit" variant="brand" disabled={pending}>
+                        <Spinner
+                            className="absolute data-[loading='false']:opacity-0 data-[loading='true']:opacity-100"
+                            data-loading={pending}
+                        />
+                        <span
+                            data-loading={pending}
+                            className="data-[loading='false']:opacity-100 data-[loading='true']:opacity-0"
+                        >
+                            {submitText}
+                        </span>
+                    </Button>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                            Închide
                         </Button>
-                        <DialogClose asChild>
-                            <Button type="button" variant="outline">
-                                Închide
-                            </Button>
-                        </DialogClose>
-                    </div>
-                </DialogFooterWithAudit>
-            </DialogFooter>
+                    </DialogClose>
+                </div>
+            </DialogFooterWithAudit>
         </form>
     )
 }

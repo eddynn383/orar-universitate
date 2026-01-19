@@ -147,7 +147,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 <FieldLabel>Fotografie</FieldLabel>
                                 <ImageUpload
                                     className="w-full"
-                                    endpoint="studentImage"
+                                    endpoint="userImage"
                                     name="image"
                                     value={imageValue}
                                     onChange={setImageValue}
@@ -457,13 +457,13 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                 createdBy={defaultValues?.createdBy}
                 updatedBy={defaultValues?.updatedBy}
             >
-                <DialogClose asChild disabled={pending}>
-                    <Button variant="outline">Anulează</Button>
-                </DialogClose>
-                <Button type="submit" disabled={pending}>
+                <Button variant="brand" type="submit" disabled={pending}>
                     {pending && <Spinner className="text-primary-foreground" />}
                     {submitText}
                 </Button>
+                <DialogClose asChild disabled={pending}>
+                    <Button variant="outline">Anulează</Button>
+                </DialogClose>
             </DialogFooterWithAudit>
         </form>
     )

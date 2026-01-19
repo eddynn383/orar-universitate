@@ -8,15 +8,19 @@ import { UserForm } from "../UserForm"
 import { CirclePlus } from "lucide-react"
 import { useState } from "react"
 
-export function CreateUserModal() {
+type CreateUserModalProps = {
+    trigger: React.ReactNode
+}
+
+export function CreateUserModal({ trigger }: CreateUserModalProps) {
     const [showDialog, setShowDialog] = useState(false)
 
     return (
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-                <Button variant="brand" size="L">
-                    <CirclePlus className="size-4" /> Adaugă utilizator
-                </Button>
+                {
+                    trigger
+                }
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <UserForm onSuccess={() => setShowDialog(false)} />
