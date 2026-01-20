@@ -59,13 +59,24 @@ export function FloatingChatWidget() {
     // Handle click outside to close popover
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
+            const target = event.target as Element
+
+            // Don't close if clicking inside main popover or trigger button
             if (
-                isOpen &&
-                popoverRef.current &&
-                buttonRef.current &&
-                !popoverRef.current.contains(event.target as Node) &&
-                !buttonRef.current.contains(event.target as Node)
+                popoverRef.current?.contains(target as Node) ||
+                buttonRef.current?.contains(target as Node)
             ) {
+                return
+            }
+
+            // Don't close if clicking inside a nested Radix popover (like NewConversationPopover)
+            // Radix UI mounts popovers in portals with data-radix-portal attribute
+            if (target.closest('[data-radix-portal]')) {
+                return
+            }
+
+            // Close widget if clicking outside
+            if (isOpen) {
                 setIsOpen(false)
             }
         }
