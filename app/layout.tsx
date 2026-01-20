@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/app/_components/Header";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { SessionProvider } from "@/providers/session-provider";
+import { FloatingChatWidget } from "@/components/messaging/floating-chat-widget";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
                     >
                         <Header />
                         {children}
+                        <FloatingChatWidget />
                     </ThemeProvider>
                 </SessionProvider>
             </body>

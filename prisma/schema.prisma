@@ -72,6 +72,7 @@ model User {
     // Relații pentru mesagerie
     conversationParticipants ConversationParticipant[]
     sentMessages             Message[]                  @relation("MessageSender")
+    messageReactions         MessageReaction[]          @relation("UserMessageReactions")
 
     createdEvents      Event[]      @relation("EventCreatedBy")
     updatedEvents      Event[]      @relation("EventUpdatedBy")
@@ -459,6 +460,19 @@ enum ConversationType {
     GROUP
 }
 
+enum MessageType {
+    TEXT
+    IMAGE
+    FILE
+    VOICE
+}
+
+enum AttachmentType {
+    IMAGE
+    FILE
+    VOICE
+}
+
 model Conversation {
     id           String                    @id @default(cuid())
     type         ConversationType          @default(DIRECT)
@@ -495,11 +509,22 @@ model Message {
     conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
     senderId       String
     sender         User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-    content        String       @db.Text
+
+    type    MessageType @default(TEXT)
+    content String      @db.Text
 
     // Pentru mesaje editate/șterse
     isEdited  Boolean @default(false)
     isDeleted Boolean @default(false)
+
+    // Relații
+    attachments MessageAttachment[]
+    reactions   MessageReaction[]
+
+    // Reply to message
+    replyToId String?
+    replyTo   Message?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+    replies   Message[] @relation("MessageReplies")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -507,4 +532,44 @@ model Message {
     @@index([conversationId, createdAt])
     @@index([senderId])
     @@map("messages")
+}
+
+model MessageAttachment {
+    id        String         @id @default(cuid())
+    messageId String
+    message   Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+    type     AttachmentType
+    url      String // URL către fișier (stocat în UploadThing sau alt storage)
+    fileName String?
+    fileSize Int? // în bytes
+    mimeType String?
+
+    // Pentru mesaje vocale
+    duration Int? // în secunde
+
+    // Pentru imagini
+    width  Int?
+    height Int?
+
+    createdAt DateTime @default(now())
+
+    @@index([messageId])
+    @@map("message_attachments")
+}
+
+model MessageReaction {
+    id        String   @id @default(cuid())
+    messageId String
+    message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+    userId    String
+    user      User     @relation("UserMessageReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+    emoji String // emoji unicode sau :emoji_name:
+
+    createdAt DateTime @default(now())
+
+    @@unique([messageId, userId, emoji])
+    @@index([messageId])
+    @@map("message_reactions")
 }

@@ -95,7 +95,19 @@ export async function GET(
                         image: true,
                         role: true
                     }
-                }
+                },
+                reactions: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true
+                            }
+                        }
+                    }
+                },
+                attachments: true
             },
             orderBy: {
                 createdAt: 'desc'
