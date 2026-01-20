@@ -6,6 +6,7 @@ import { getAllDisciplines } from "@/data/discipline"
 import { CreateDisciplineModal } from "./_components/CreateDisciplineModal"
 import { SearchInput } from "./_components/Search"
 import { Suspense } from "react"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { getAllLearningTypes } from "@/data/learningType"
 import { getAllTeachers } from "@/data/teacher"
@@ -74,7 +75,7 @@ export default async function DisciplinesPage({ searchParams }: DisciplinesPageP
             <div className="flex-1 overflow-y-auto">
                 <div className="flex flex-col items-center py-8 px-6">
                     <div className="flex flex-col gap-8 w-full max-w-7xl">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {/* No search results */}
                             {!hasAnyResults && searchQuery && !hasNoDisciplines && (
                                 <Empty>

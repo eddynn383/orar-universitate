@@ -3,6 +3,7 @@ import { getAllClassrooms } from "@/data/classroom"
 import { ClassroomCard } from "./_components/ClassroomCard"
 import { CreateClassroomModal } from "./_components/CreateClassroomModal"
 import { Suspense } from "react"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { Card, CardContent } from "@/components/Card"
 import { Button } from "@/components/Button"
@@ -48,7 +49,7 @@ export default async function ClassroomsPage({ searchParams }: ClassroomPageProp
             <div className="flex flex-col items-center border-b border-primary-200 padding-l py-8 px-6 overflow-auto">
                 <div className="flex flex-col gap-1 w-full max-w-7xl h-full">
                     <div className="flex flex-col gap-8 w-full">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {filteredClassrooms.length === 0 && searchQuery ? (
                                 <Empty>
                                     <EmptyHeader>

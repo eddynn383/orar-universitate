@@ -11,7 +11,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/Dropdown"
-import { LogOut, Settings, User } from "lucide-react"
+import { LogOut, Settings, User, Bell, BellOff } from "lucide-react"
+import { useNotifications } from "@/app/hooks/use-notifications"
 import Link from "next/link"
 
 type UserNavProps = {
@@ -24,6 +25,8 @@ type UserNavProps = {
 }
 
 export function UserNav({ user }: UserNavProps) {
+    const { permission, isSupported, requestPermission } = useNotifications()
+
     const initials = user.name
         ? user.name.split(" ").map(n => n[0]).join("").toUpperCase()
         : user.email?.[0].toUpperCase() || "U"
@@ -71,6 +74,24 @@ export function UserNav({ user }: UserNavProps) {
                 <DropdownMenuItem>
                     <Link href="/profil" className="flex items-center gap-2"><User className="mr-2 h-4 w-4" /> Profil</Link>
                 </DropdownMenuItem>
+                {isSupported && (
+                    <DropdownMenuItem
+                        onClick={permission !== 'granted' ? requestPermission : undefined}
+                        className={permission === 'granted' ? 'cursor-default' : 'cursor-pointer'}
+                    >
+                        {permission === 'granted' ? (
+                            <>
+                                <Bell className="mr-2 h-4 w-4 text-success-400" />
+                                <span>Notificări active</span>
+                            </>
+                        ) : (
+                            <>
+                                <BellOff className="mr-2 h-4 w-4" />
+                                <span>Activează notificări</span>
+                            </>
+                        )}
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                     className="text-red-600 focus:text-red-600 cursor-pointer"

@@ -1,17 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/Dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
-import { Search, Loader2 } from "lucide-react"
+import { UserListSkeleton } from "./message-skeletons"
+import { Search, MessageCirclePlus } from "lucide-react"
 import { useDebouncedCallback } from "use-debounce"
 
 interface User {
@@ -22,17 +17,14 @@ interface User {
     role: string
 }
 
-interface NewConversationDialogProps {
-    open: boolean
-    onOpenChange: (open: boolean) => void
+interface NewConversationPopoverProps {
     onConversationCreated: (conversationId: string) => void
 }
 
-export function NewConversationDialog({
-    open,
-    onOpenChange,
+export function NewConversationPopover({
     onConversationCreated
-}: NewConversationDialogProps) {
+}: NewConversationPopoverProps) {
+    const [open, setOpen] = useState(false)
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
@@ -92,7 +84,7 @@ export function NewConversationDialog({
 
             if (data.success) {
                 onConversationCreated(data.data.id)
-                onOpenChange(false)
+                setOpen(false)
                 setSearchTerm("")
             }
         } catch (error) {
@@ -129,18 +121,27 @@ export function NewConversationDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>Conversație nouă</DialogTitle>
-                    <DialogDescription>
-                        Caută un utilizator pentru a începe o conversație
-                    </DialogDescription>
-                </DialogHeader>
-
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon-s"
+                    title="Conversație nouă"
+                >
+                    <MessageCirclePlus className="w-4 h-4" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-4" align="end">
                 <div className="space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-lg mb-1">Conversație nouă</h3>
+                        <p className="text-sm text-primary-600">
+                            Caută un utilizator pentru a începe o conversație
+                        </p>
+                    </div>
+
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-600" />
                         <Input
                             placeholder="Caută după nume sau email..."
                             value={searchTerm}
@@ -149,40 +150,38 @@ export function NewConversationDialog({
                         />
                     </div>
 
-                    <div className="max-h-[400px] overflow-y-auto border rounded-lg">
+                    <div className="max-h-[300px] overflow-y-auto border border-primary-200 rounded-lg">
                         {loading ? (
-                            <div className="flex items-center justify-center p-8">
-                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                            </div>
+                            <UserListSkeleton />
                         ) : users.length === 0 ? (
                             <div className="flex flex-col items-center justify-center p-8 text-center">
-                                <p className="text-muted-foreground">
+                                <p className="text-primary-600 text-sm">
                                     {searchTerm
                                         ? "Nu s-au găsit utilizatori"
                                         : "Caută utilizatori pentru a începe o conversație"}
                                 </p>
                             </div>
                         ) : (
-                            <div className="divide-y">
+                            <div className="divide-y divide-primary-200">
                                 {users.map((user) => (
                                     <button
                                         key={user.id}
                                         onClick={() => handleCreateConversation(user.id)}
                                         disabled={creating}
-                                        className="w-full p-4 text-left hover:bg-accent transition-colors disabled:opacity-50"
+                                        className="w-full p-3 text-left hover:bg-primary-200 transition-colors disabled:opacity-50"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <Avatar>
+                                            <Avatar className="h-10 w-10">
                                                 <AvatarImage src={user.image || undefined} />
                                                 <AvatarFallback>
                                                     {getInitials(user.name, user.email)}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium truncate">
+                                                <p className="font-medium truncate text-sm">
                                                     {user.name || user.email}
                                                 </p>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-xs text-primary-600">
                                                     {getRoleLabel(user.role)}
                                                 </p>
                                             </div>
@@ -193,7 +192,7 @@ export function NewConversationDialog({
                         )}
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </PopoverContent>
+        </Popover>
     )
 }
