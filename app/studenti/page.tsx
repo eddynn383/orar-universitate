@@ -9,6 +9,7 @@ import { CardActions } from "./_components/CardActions"
 import { CreateStudentModal } from "./_components/CreateStudentModal"
 import { SearchInput } from "./_components/Search"
 import { Suspense } from "react"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { Button } from "@/components/Button"
 import { AdminOnlyServer } from "@/components/RoleGateServer"
@@ -56,7 +57,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
             <div className="flex flex-col items-center border-b border-primary-200 padding-l py-8 px-6 overflow-y-auto">
                 <div className="flex flex-col gap-1 w-full max-w-7xl h-full">
                     <div className="flex flex-col gap-8 w-full">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {filteredStudents.length === 0 && searchQuery ? (
                                 <Empty>
                                     <EmptyHeader>

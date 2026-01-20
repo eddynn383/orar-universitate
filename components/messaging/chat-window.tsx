@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from "react"
 import { MessageInput } from "./message-input"
 import { MessageItem } from "./message-item"
+import { MessageListSkeleton } from "./message-skeletons"
 import { useSocket } from "@/app/contexts/socket-context"
-import { Loader2 } from "lucide-react"
 
 interface User {
     id: string
@@ -290,19 +290,13 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
-            </div>
-        )
-    }
-
     return (
         <div className="flex flex-col h-full">
             {/* Messages area */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                {messages.length === 0 ? (
+                {loading ? (
+                    <MessageListSkeleton />
+                ) : messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                         <p className="text-primary-600 text-sm">
                             Niciun mesaj. Începe conversația!

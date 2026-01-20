@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, ArrowLeft, Search, Bell, BellOff } from "lucide-react"
-import { Button } from "@/components/Button"
+import { MessageCircle, ArrowLeft, Search } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
 import { Input } from "@/components/Input"
 import { ChatWindow } from "./chat-window"
-import { NewConversationDialog } from "./new-conversation-dialog"
+import { NewConversationPopover } from "./new-conversation-dialog"
+import { ConversationListSkeleton } from "./message-skeletons"
 import { useSocket } from "@/app/contexts/socket-context"
-import { useNotifications } from "@/app/hooks/use-notifications"
 import { formatDistanceToNow } from "date-fns"
 import { ro } from "date-fns/locale"
 import { useSession } from "next-auth/react"
@@ -51,9 +50,7 @@ export function FloatingChatWidget() {
     const [searchQuery, setSearchQuery] = useState("")
     const [totalUnreadCount, setTotalUnreadCount] = useState(0)
     const [loading, setLoading] = useState(false)
-    const [showNewConversationDialog, setShowNewConversationDialog] = useState(false)
     const { socket } = useSocket()
-    const { permission, isSupported, requestPermission } = useNotifications()
 
     // Refs for click outside detection
     const popoverRef = useRef<HTMLDivElement>(null)
@@ -145,13 +142,6 @@ export function FloatingChatWidget() {
         loadConversations() // Refresh to update unread counts
     }
 
-    const handleClose = () => {
-        setIsOpen(false)
-        setView('list')
-        setSelectedConversationId(null)
-        setSearchQuery("")
-    }
-
     const handleConversationCreated = (conversationId: string) => {
         loadConversations()
         setSelectedConversationId(conversationId)
@@ -240,44 +230,11 @@ export function FloatingChatWidget() {
                         ) : (
                             <>
                                 <h2 className="text-lg font-semibold">Mesaje</h2>
-                                <div className="flex gap-2">
-                                    {isSupported && permission !== 'granted' && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-s"
-                                            onClick={requestPermission}
-                                            title="Activează notificări"
-                                        >
-                                            <BellOff className="w-4 h-4" />
-                                        </Button>
-                                    )}
-                                    {isSupported && permission === 'granted' && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon-s"
-                                            title="Notificări active"
-                                            disabled
-                                        >
-                                            <Bell className="w-4 h-4 text-success-400" />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon-s"
-                                        onClick={() => setShowNewConversationDialog(true)}
-                                        title="Conversație nouă"
-                                    >
-                                        <MessageCircle className="w-4 h-4" />
-                                    </Button>
-                                </div>
+                                <NewConversationPopover
+                                    onConversationCreated={handleConversationCreated}
+                                />
                             </>
                         )}
-                        <button
-                            onClick={handleClose}
-                            className="p-1 hover:bg-primary-200 rounded ml-2"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
                     </div>
 
                     {/* Content */}
@@ -300,9 +257,7 @@ export function FloatingChatWidget() {
                                 {/* Conversations List */}
                                 <div className="flex-1 overflow-y-auto">
                                     {loading ? (
-                                        <div className="flex items-center justify-center h-full">
-                                            <p className="text-primary-600 text-sm">Se încarcă...</p>
-                                        </div>
+                                        <ConversationListSkeleton />
                                     ) : filteredConversations.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                                             <MessageCircle className="w-12 h-12 text-primary-400 mb-2" />
@@ -310,14 +265,9 @@ export function FloatingChatWidget() {
                                                 {searchQuery ? 'Nu s-au găsit conversații' : 'Nu ai conversații'}
                                             </p>
                                             {!searchQuery && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="S"
-                                                    className="mt-3"
-                                                    onClick={() => setShowNewConversationDialog(true)}
-                                                >
-                                                    Începe o conversație
-                                                </Button>
+                                                <p className="text-primary-600 text-xs mt-2">
+                                                    Folosește butonul ✉️ din antet pentru a începe
+                                                </p>
                                             )}
                                         </div>
                                     ) : (
@@ -379,13 +329,6 @@ export function FloatingChatWidget() {
                     </div>
                 </div>
             )}
-
-            {/* New Conversation Dialog */}
-            <NewConversationDialog
-                open={showNewConversationDialog}
-                onOpenChange={setShowNewConversationDialog}
-                onConversationCreated={handleConversationCreated}
-            />
         </>
     )
 }

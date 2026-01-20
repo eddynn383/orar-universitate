@@ -1,6 +1,7 @@
 "use server"
 
 import { Suspense } from "react"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card"
 import { H1, H2, P } from "@/components/Typography"
 import { getAllGroups } from "@/data/group"
@@ -54,7 +55,7 @@ export default async function GroupsPage({ searchParams }: GroupsPageProps) {
             <div className="flex flex-col items-center border-b border-primary-200 padding-l py-8 px-6 overflow-y-auto">
                 <div className="flex flex-col gap-1 w-full max-w-7xl h-full">
                     <div className="flex flex-col gap-8 w-full">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {filteredGroups.length === 0 && searchQuery ? (
                                 <Empty>
                                     <EmptyHeader>

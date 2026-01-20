@@ -11,6 +11,7 @@ import { SearchInput } from "./_components/Search"
 import { Suspense } from "react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { Button } from "@/components/Button"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { AdminOnlyServer } from "@/components/RoleGateServer"
 import { getCurrentUser } from "@/lib/auth-action"
 
@@ -58,7 +59,7 @@ export default async function TeachersPage({ searchParams }: TeachersPageProps) 
             <div className="flex flex-col items-center border-b border-primary-200 padding-l py-8 px-6 overflow-y-auto">
                 <div className="flex flex-col gap-1 w-full max-w-7xl h-full">
                     <div className="flex flex-col gap-8 w-full">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {filteredTeachers.length === 0 && searchQuery ? (
                                 <Empty>
                                     <EmptyHeader>

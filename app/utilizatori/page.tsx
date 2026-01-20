@@ -8,6 +8,7 @@ import { CardActions } from "./_components/CardActions"
 import { CreateUserModal } from "./_components/CreateUserModal"
 import { SearchInput } from "./_components/Search"
 import { Suspense } from "react"
+import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { getAllUsers } from "@/data/user"
 import { AdminOnlyServer } from "@/components/RoleGateServer"
@@ -75,7 +76,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                         {/* <div className="flex w-full justify-between gap-4">
                             <CreateUserModal />
                         </div> */}
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={<CardListSkeleton />}>
                             {filteredUsers.length === 0 && searchQuery ? (
                                 <Empty>
                                     <EmptyHeader>

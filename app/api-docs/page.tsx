@@ -2,6 +2,7 @@
 
 import { H1, P } from '@/components/Typography';
 import { Suspense, useEffect } from 'react';
+import { Skeleton } from '@/components/Skeleton';
 
 export default function ApiDocsPage() {
     useEffect(() => {
@@ -56,7 +57,14 @@ export default function ApiDocsPage() {
             <div className="flex flex-col items-center border-b border-primary-200 padding-l py-8 px-6 overflow-auto">
                 <div className="flex flex-col gap-1 w-full max-w-7xl h-full">
                     <div className="flex flex-col gap-8 w-full pb-8">
-                        <Suspense fallback={"Loading..."}>
+                        <Suspense fallback={
+                            <div className="space-y-4 w-full">
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-48 w-full" />
+                                <Skeleton className="h-32 w-full" />
+                            </div>
+                        }>
                             <div id="swagger-ui" className="swagger-ui-container"></div>
                         </Suspense>
                     </div>
