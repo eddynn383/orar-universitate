@@ -83,34 +83,34 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
             )
         })
 
-        // Listen for reactions
-        socket.on('message_reaction', ({ messageId, reaction, action }: any) => {
-            if (action === 'added' && reaction) {
-                setMessages(prev =>
-                    prev.map(msg =>
-                        msg.id === messageId
-                            ? {
-                                ...msg,
-                                reactions: [...(msg.reactions || []), reaction]
-                            }
-                            : msg
-                    )
-                )
-            } else if (action === 'removed') {
-                setMessages(prev =>
-                    prev.map(msg =>
-                        msg.id === messageId
-                            ? {
-                                ...msg,
-                                reactions: (msg.reactions || []).filter(
-                                    r => !(r.user.id === reaction?.user?.id && r.emoji === reaction?.emoji)
-                                )
-                            }
-                            : msg
-                    )
-                )
-            }
-        })
+        // Listen for reactions (disabled until DB migration)
+        // socket.on('message_reaction', ({ messageId, reaction, action }: any) => {
+        //     if (action === 'added' && reaction) {
+        //         setMessages(prev =>
+        //             prev.map(msg =>
+        //                 msg.id === messageId
+        //                     ? {
+        //                         ...msg,
+        //                         reactions: [...(msg.reactions || []), reaction]
+        //                     }
+        //                     : msg
+        //             )
+        //         )
+        //     } else if (action === 'removed') {
+        //         setMessages(prev =>
+        //             prev.map(msg =>
+        //                 msg.id === messageId
+        //                     ? {
+        //                         ...msg,
+        //                         reactions: (msg.reactions || []).filter(
+        //                             r => !(r.user.id === reaction?.user?.id && r.emoji === reaction?.emoji)
+        //                         )
+        //                     }
+        //                     : msg
+        //             )
+        //         )
+        //     }
+        // })
 
         // Listen for typing indicators
         socket.on('user_typing', ({ userId }: { userId: string }) => {
@@ -142,15 +142,20 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
     }, [messages])
 
     const loadMessages = async () => {
+        setLoading(true)
         try {
-            const response = await fetch(`/api/conversations/${conversationId}/messages?include=reactions`)
+            const response = await fetch(`/api/conversations/${conversationId}/messages`)
             const data = await response.json()
 
             if (data.success) {
                 setMessages(data.data)
+            } else {
+                console.error('Error loading messages:', data.error)
+                setMessages([])
             }
         } catch (error) {
             console.error('Error loading messages:', error)
+            setMessages([])
         } finally {
             setLoading(false)
         }
@@ -179,9 +184,10 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
 
             const data = await response.json()
 
-            if (data.success) {
-                setMessages(prev => [...prev, data.data])
+            if (!data.success) {
+                console.error('Error sending message:', data.error)
             }
+            // Nu mai adăugăm mesajul manual - Socket.io va emite 'new_message' event
         } catch (error) {
             console.error('Error sending message:', error)
         }
@@ -319,7 +325,8 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
                                     currentUserId={currentUserId}
                                     onEdit={handleEditMessage}
                                     onDelete={handleDeleteMessage}
-                                    onReact={handleReaction}
+                                    // onReact disabled until DB migration
+                                    // onReact={handleReaction}
                                 />
                             )
                         })}

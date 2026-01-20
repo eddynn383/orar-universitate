@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { MessageCircle, X, ArrowLeft, Search, Bell, BellOff } from "lucide-react"
 import { Button } from "@/components/Button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
@@ -54,6 +54,30 @@ export function FloatingChatWidget() {
     const [showNewConversationDialog, setShowNewConversationDialog] = useState(false)
     const { socket } = useSocket()
     const { permission, isSupported, requestPermission } = useNotifications()
+
+    // Refs for click outside detection
+    const popoverRef = useRef<HTMLDivElement>(null)
+    const buttonRef = useRef<HTMLButtonElement>(null)
+
+    // Handle click outside to close popover
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (
+                isOpen &&
+                popoverRef.current &&
+                buttonRef.current &&
+                !popoverRef.current.contains(event.target as Node) &&
+                !buttonRef.current.contains(event.target as Node)
+            ) {
+                setIsOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [isOpen])
 
     // Load conversations when widget opens
     useEffect(() => {
@@ -176,6 +200,7 @@ export function FloatingChatWidget() {
             {/* Floating Button */}
             <div className="fixed bottom-6 right-6 z-50">
                 <button
+                    ref={buttonRef}
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative flex items-center justify-center w-14 h-14 bg-brand-400 hover:bg-brand-500 text-brand-100 rounded-full shadow-lg transition-all hover:scale-110 focus:outline-none focus:ring-4 focus:ring-brand-400/50"
                     title="Mesaje"
@@ -191,7 +216,10 @@ export function FloatingChatWidget() {
 
             {/* Chat Widget Popover */}
             {isOpen && (
-                <div className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-primary-100 border border-primary-200 rounded-lg shadow-2xl flex flex-col">
+                <div
+                    ref={popoverRef}
+                    className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-primary-100 border border-primary-200 rounded-lg shadow-2xl flex flex-col"
+                >
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-primary-200 bg-primary-100">
                         {view === 'chat' ? (
