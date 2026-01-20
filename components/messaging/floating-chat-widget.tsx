@@ -41,7 +41,7 @@ interface Conversation {
 }
 
 export function FloatingChatWidget() {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const [isOpen, setIsOpen] = useState(false)
     const [view, setView] = useState<'list' | 'chat'>('list')
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
@@ -174,10 +174,13 @@ export function FloatingChatWidget() {
         loadConversations() // Refresh to update unread counts
     }
 
-    const handleConversationCreated = (conversationId: string) => {
-        loadConversations()
+    const handleConversationCreated = async (conversationId: string) => {
+        // Set the selected conversation immediately
         setSelectedConversationId(conversationId)
         setView('chat')
+
+        // Reload conversations in the background to get the full data
+        await loadConversations()
     }
 
     const getConversationTitle = (conversation: Conversation) => {
@@ -213,7 +216,14 @@ export function FloatingChatWidget() {
             .substring(0, 2)
     }
 
-    if (!session?.user) {
+    // Don't show widget if user is not authenticated
+    if (status === "unauthenticated") {
+        return null
+    }
+
+    // Don't show widget while loading session on initial page load
+    // This prevents SSR/client mismatch and ensures the button appears smoothly
+    if (status === "loading" && !session) {
         return null
     }
 
@@ -253,10 +263,10 @@ export function FloatingChatWidget() {
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                                 <h2 className="text-lg font-semibold flex-1 text-center">
-                                    {selectedConversationId &&
-                                        getConversationTitle(
-                                            conversations.find(c => c.id === selectedConversationId)!
-                                        )}
+                                    {selectedConversationId && (() => {
+                                        const conversation = conversations.find(c => c.id === selectedConversationId)
+                                        return conversation ? getConversationTitle(conversation) : 'Se încarcă...'
+                                    })()}
                                 </h2>
                             </>
                         ) : (
