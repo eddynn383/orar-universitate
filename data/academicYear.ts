@@ -1,7 +1,6 @@
 "use server"
 
 import prisma from "@/lib/prisma";
-import { NextResponse } from "next/server";
 
 export const setYear = async (body: any) => {
     try {

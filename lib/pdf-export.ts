@@ -2,8 +2,8 @@
  * @fileoverview Utility functions for exporting schedule as PDF
  */
 
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
+import { jsPDF } from 'jspdf'
+import { autoTable } from 'jspdf-autotable'
 
 interface EventData {
     zi: string

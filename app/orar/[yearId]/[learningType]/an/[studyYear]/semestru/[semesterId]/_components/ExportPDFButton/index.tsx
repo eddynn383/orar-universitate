@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/Button"
 import { fetchAndExportSchedule } from "@/lib/pdf-export"
 
 type ExportPDFButtonProps = {
@@ -50,7 +50,7 @@ export function ExportPDFButton({
             onClick={handleExport}
             disabled={isExporting}
             variant="outline"
-            size="sm"
+            size="S"
             className="gap-2"
         >
             <Download className="h-4 w-4" />
