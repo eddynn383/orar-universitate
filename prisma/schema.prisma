@@ -65,6 +65,8 @@ model User {
 
     createdEvents      Event[]      @relation("EventCreatedBy")
     updatedEvents      Event[]      @relation("EventUpdatedBy")
+    approvedEvents     Event[]      @relation("EventApprovedBy")
+    publishedEvents    Event[]      @relation("EventPublishedBy")
     createdTeachers    Teacher[]    @relation("TeacherCreatedBy")
     updatedTeachers    Teacher[]    @relation("TeacherUpdatedBy")
     createdDisciplines Discipline[] @relation("DisciplineCreatedBy")
@@ -95,7 +97,16 @@ enum UserRole {
     ADMIN
     SECRETAR
     PROFESOR
+    STUDENT
     USER
+}
+
+enum EventStatus {
+    DRAFT
+    PENDING_APPROVAL
+    APPROVED
+    PUBLISHED
+    REJECTED
 }
 
 model AcademicYear {
@@ -232,6 +243,16 @@ model Event {
 
     groups EventGroup[]
 
+    // Workflow status and approval tracking
+    status           EventStatus @default(DRAFT)
+    approvedBy       User?       @relation("EventApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+    approvedById     String?
+    approvedAt       DateTime?
+    publishedBy      User?       @relation("EventPublishedBy", fields: [publishedById], references: [id], onDelete: SetNull)
+    publishedById    String?
+    publishedAt      DateTime?
+    rejectionReason  String?     @db.Text
+
     createdBy   User?   @relation("EventCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
     updatedBy   User?   @relation("EventUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
@@ -243,6 +264,7 @@ model Event {
     @@index([day, startHour])
     @@index([teacherId, day, startHour])
     @@index([classroomId, day, startHour])
+    @@index([status])
     @@map("events")
 }
 

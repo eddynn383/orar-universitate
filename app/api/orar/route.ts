@@ -98,12 +98,43 @@ export async function GET(request: NextRequest) {
         return authResult.response
     }
 
+    const userRole = authResult.user.role
+    const userId = authResult.user.id
+
     try {
         const { searchParams } = new URL(request.url)
         const params = parseQueryParams(searchParams)
 
         // Construiește where clause pentru filtrare
         const where: any = {}
+
+        // Filtrare bazată pe rol și status
+        if (userRole === "STUDENT") {
+            // Studenții văd doar evenimentele publicate
+            where.status = "PUBLISHED"
+        } else if (userRole === "PROFESOR") {
+            // Profesorii văd propriile evenimente (orice status) SAU evenimente publicate
+            // Vom găsi mai întâi profesorul asociat cu userId
+            const teacher = await prisma.teacher.findFirst({
+                where: {
+                    OR: [
+                        { createdById: userId },
+                        { email: authResult.user.email }
+                    ]
+                }
+            })
+
+            if (teacher) {
+                where.OR = [
+                    { status: "PUBLISHED" },
+                    { teacherId: teacher.id }
+                ]
+            } else {
+                // Dacă nu există un profesor asociat, vezi doar evenimentele publicate
+                where.status = "PUBLISHED"
+            }
+        }
+        // ADMIN și SECRETAR văd toate evenimentele (nu adăugăm filtru de status)
 
         // Filtrare după an universitar
         if (params.anUniversitar) {
@@ -257,6 +288,7 @@ export async function GET(request: NextRequest) {
             tipActivitate: event.eventType,
             frecventa: event.eventRecurrence,
             semestru: event.semester,
+            status: event.status,
             anUniversitar: event.academicYear ? `${event.academicYear.start}-${event.academicYear.end}` : null,
             ciclu: event.learnings?.learningCycle,
             profesor: event.teacher ? {
@@ -280,6 +312,9 @@ export async function GET(request: NextRequest) {
                 nume: g.group.name,
                 anStudiu: g.group.studyYear?.year
             })),
+            approvedAt: event.approvedAt,
+            publishedAt: event.publishedAt,
+            rejectionReason: event.rejectionReason,
             createdAt: event.createdAt,
             updatedAt: event.updatedAt
         }))
@@ -359,10 +394,21 @@ export async function GET(request: NextRequest) {
  * // }
  */
 export async function POST(request: NextRequest) {
-    // Verifică autorizarea (admin sau secretar)
-    const authResult = await requireAdminOrSecretar()
+    // Verifică autorizarea (admin, secretar sau profesor)
+    const authResult = await requireAuth()
     if (!authResult.success) {
         return authResult.response
+    }
+
+    const userRole = authResult.user.role
+
+    // Profesorii pot crea evenimente, dar ele intră în workflow de aprobare
+    if (!["ADMIN", "SECRETAR", "PROFESOR"].includes(userRole)) {
+        return errorResponse(
+            "Nu aveți permisiunea de a crea evenimente",
+            403,
+            "FORBIDDEN"
+        )
     }
 
     try {
@@ -407,15 +453,42 @@ export async function POST(request: NextRequest) {
 
         const { groupIds, duration, ...eventData } = validation.data
 
+        // Determină statusul inițial bazat pe rol
+        let initialStatus: "DRAFT" | "PENDING_APPROVAL" | "PUBLISHED" = "DRAFT"
+        const eventCreateData: any = {
+            ...eventData,
+            createdById: authResult.user.id,
+            updatedById: authResult.user.id
+        }
+
+        if (userRole === "ADMIN") {
+            // Administratorii pot publica direct
+            initialStatus = "PUBLISHED"
+            eventCreateData.status = "PUBLISHED"
+            eventCreateData.publishedById = authResult.user.id
+            eventCreateData.publishedAt = new Date()
+        } else if (userRole === "PROFESOR") {
+            // Profesorii creează evenimente care necesită aprobare
+            initialStatus = "PENDING_APPROVAL"
+            eventCreateData.status = "PENDING_APPROVAL"
+        } else if (userRole === "SECRETAR") {
+            // Secretarii pot crea evenimente publicate direct sau drafturi
+            // Default este PENDING_APPROVAL, dar pot publica direct dacă doresc
+            initialStatus = body.publishDirect ? "PUBLISHED" : "PENDING_APPROVAL"
+            eventCreateData.status = initialStatus
+            if (body.publishDirect) {
+                eventCreateData.publishedById = authResult.user.id
+                eventCreateData.publishedAt = new Date()
+            }
+        }
+
         // Creează evenimentul
         const event = await prisma.event.create({
             data: {
-                ...eventData,
+                ...eventCreateData,
                 groups: {
                     create: groupIds.map(groupId => ({ groupId }))
-                },
-                createdById: authResult.user.id,
-                updatedById: authResult.user.id
+                }
             },
             include: {
                 teacher: true,
@@ -427,9 +500,16 @@ export async function POST(request: NextRequest) {
             }
         })
 
+        const message = initialStatus === "PUBLISHED"
+            ? "Eveniment creat și publicat cu succes"
+            : initialStatus === "PENDING_APPROVAL"
+            ? "Eveniment creat și trimis spre aprobare"
+            : "Eveniment creat ca draft"
+
         return successResponse({
             id: event.id,
-            message: "Eveniment creat cu succes"
+            status: initialStatus,
+            message
         }, undefined, 201)
 
     } catch (error) {

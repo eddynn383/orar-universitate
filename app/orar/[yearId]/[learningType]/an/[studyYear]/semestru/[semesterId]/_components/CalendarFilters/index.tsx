@@ -6,6 +6,7 @@ import { Check, Filter, X } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/Popover"
 import { Badge } from "@/components/Badge"
 import { Group } from "@/app/generated/prisma/client"
+import { ExportPDFButton } from "../ExportPDFButton"
 
 const EVENT_TYPES = [
     { name: "Curs", value: "C", color: "bg-blue-500" },
@@ -20,6 +21,10 @@ type CalendarFiltersProps = {
     selectedGroupIds: string[]
     onTypesChange: (types: string[]) => void
     onGroupsChange: (groupIds: string[]) => void
+    academicYear?: string
+    learningCycle?: string
+    semester?: number
+    studyYear?: number
 }
 
 export function CalendarFilters({
@@ -28,6 +33,10 @@ export function CalendarFilters({
     selectedGroupIds,
     onTypesChange,
     onGroupsChange,
+    academicYear,
+    learningCycle,
+    semester,
+    studyYear,
 }: CalendarFiltersProps) {
     const [isGroupFilterOpen, setIsGroupFilterOpen] = useState(false)
 
@@ -73,7 +82,7 @@ export function CalendarFilters({
     return (
         <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Legend / Type Filters */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1">
                 <span className="text-sm text-primary-600">Legenda:</span>
                 <div className="flex gap-2">
                     {EVENT_TYPES.map((type) => {
@@ -112,8 +121,22 @@ export function CalendarFilters({
                     </Button>
                 )}
             </div>
-            {/* Group Filter */}
-            <Popover open={isGroupFilterOpen} onOpenChange={setIsGroupFilterOpen}>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+                {/* Export PDF Button */}
+                {academicYear && learningCycle && semester && studyYear && (
+                    <ExportPDFButton
+                        academicYear={academicYear}
+                        learningCycle={learningCycle}
+                        semester={semester}
+                        studyYear={studyYear}
+                        selectedGroupId={selectedGroupIds.length === 1 ? selectedGroupIds[0] : undefined}
+                    />
+                )}
+
+                {/* Group Filter */}
+                <Popover open={isGroupFilterOpen} onOpenChange={setIsGroupFilterOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
@@ -199,7 +222,8 @@ export function CalendarFilters({
                         </div>
                     )}
                 </PopoverContent>
-            </Popover>
+                </Popover>
+            </div>
         </div>
     )
 }
