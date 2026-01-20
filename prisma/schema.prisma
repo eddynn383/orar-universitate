@@ -62,6 +62,11 @@ model User {
     accounts Account[]
     sessions Session[]
     logs     Log[]
+    notifications Notification[] @relation("UserNotifications")
+
+    // Legăturile cu Teacher și Student
+    teacherProfile Teacher? @relation("UserAsTeacher")
+    studentProfile Student? @relation("UserAsStudent")
 
     createdEvents      Event[]      @relation("EventCreatedBy")
     updatedEvents      Event[]      @relation("EventUpdatedBy")
@@ -158,6 +163,10 @@ model Teacher {
     grade       String?
     events      Event[]
     disciplines Discipline[]
+
+    // Legătura cu User
+    user        User?   @relation("UserAsTeacher", fields: [userId], references: [id], onDelete: Cascade)
+    userId      String? @unique
 
     createdBy   User?   @relation("TeacherCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
@@ -338,6 +347,10 @@ model Student {
     specialMedicalCondition String?
     disability              Disability @default(NONE)
 
+    // Legătura cu User
+    user        User?   @relation("UserAsStudent", fields: [userId], references: [id], onDelete: Cascade)
+    userId      String? @unique
+
     // Relații
     groupId String?
     group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
@@ -392,6 +405,20 @@ model Log {
     createdAt DateTime @default(now())
 
     @@map("logs")
+}
+
+model Notification {
+    id        String   @id @default(cuid())
+    userId    String
+    user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+    title     String
+    message   String
+    read      Boolean  @default(false)
+    type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+    createdAt DateTime @default(now())
+
+    @@index([userId, read])
+    @@map("notifications")
 }
 
 enum Day {

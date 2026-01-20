@@ -401,6 +401,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = authResult.user.role
+    const userId = authResult.user.id
 
     // Profesorii pot crea evenimente, dar ele intră în workflow de aprobare
     if (!["ADMIN", "SECRETAR", "PROFESOR"].includes(userRole)) {
@@ -439,6 +440,49 @@ export async function POST(request: NextRequest) {
                 API_ERRORS.VALIDATION_ERROR.status,
                 API_ERRORS.VALIDATION_ERROR.code
             )
+        }
+
+        // Validare suplimentară pentru profesori
+        if (userRole === "PROFESOR") {
+            // Găsește profilul de profesor asociat cu userul
+            const teacherProfile = await prisma.teacher.findFirst({
+                where: {
+                    OR: [
+                        { userId: userId },
+                        { email: authResult.user.email }
+                    ]
+                },
+                include: {
+                    disciplines: true
+                }
+            })
+
+            if (!teacherProfile) {
+                return errorResponse(
+                    "Nu aveți un profil de profesor asociat. Contactați administratorul.",
+                    403,
+                    "FORBIDDEN"
+                )
+            }
+
+            // Verifică dacă profesorul încearcă să creeze un eveniment pentru el însuși
+            if (validation.data.teacherId !== teacherProfile.id) {
+                return errorResponse(
+                    "Puteți crea evenimente doar pentru dvs. însuși",
+                    403,
+                    "FORBIDDEN"
+                )
+            }
+
+            // Verifică dacă disciplina aparține profesorului
+            const disciplineIds = teacherProfile.disciplines.map(d => d.id)
+            if (!disciplineIds.includes(validation.data.disciplineId)) {
+                return errorResponse(
+                    "Nu puteți crea evenimente pentru această disciplină. Puteți crea evenimente doar pentru disciplinele pe care le predați.",
+                    403,
+                    "FORBIDDEN"
+                )
+            }
         }
 
         // Verifică conflicte de orar (opțional - pentru același profesor sau sală)
