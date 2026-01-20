@@ -35,8 +35,7 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
         { href: '/sali', label: 'Sali clasa' },
-        { href: '/utilizatori', label: 'Utilizatori' },
-        { href: '/messages', label: 'Mesaje' }
+        { href: '/utilizatori', label: 'Utilizatori' }
     ]
 
     const secretarNav = [
@@ -44,18 +43,15 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/cadre', label: 'Cadre didactice' },
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
-        { href: '/sali', label: 'Sali clasa' },
-        { href: '/messages', label: 'Mesaje' }
+        { href: '/sali', label: 'Sali clasa' }
     ]
 
     const profesorNav = [
-        { href: '/orar', label: 'Orar' },
-        { href: '/messages', label: 'Mesaje' }
+        { href: '/orar', label: 'Orar' }
     ]
 
     const studentNav = [
-        { href: '/orar', label: 'Orar' },
-        { href: '/messages', label: 'Mesaje' }
+        { href: '/orar', label: 'Orar' }
     ]
 
     const authNav =
