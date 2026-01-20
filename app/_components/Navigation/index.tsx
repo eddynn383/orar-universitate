@@ -35,7 +35,8 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
         { href: '/sali', label: 'Sali clasa' },
-        { href: '/utilizatori', label: 'Utilizatori' }
+        { href: '/utilizatori', label: 'Utilizatori' },
+        { href: '/messages', label: 'Mesaje' }
     ]
 
     const secretarNav = [
@@ -44,9 +45,25 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
         { href: '/sali', label: 'Sali clasa' },
+        { href: '/messages', label: 'Mesaje' }
     ]
 
-    const authNav = session?.user.role === 'ADMIN' ? adminNav : secretarNav
+    const profesorNav = [
+        { href: '/orar', label: 'Orar' },
+        { href: '/messages', label: 'Mesaje' }
+    ]
+
+    const studentNav = [
+        { href: '/orar', label: 'Orar' },
+        { href: '/messages', label: 'Mesaje' }
+    ]
+
+    const authNav =
+        session?.user.role === 'ADMIN' ? adminNav :
+        session?.user.role === 'SECRETAR' ? secretarNav :
+        session?.user.role === 'PROFESOR' ? profesorNav :
+        session?.user.role === 'STUDENT' ? studentNav :
+        secretarNav
 
     const publicNav = [
         { href: '/login', label: 'Login' },
