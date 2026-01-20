@@ -56,6 +56,28 @@ export function FloatingChatWidget() {
     const popoverRef = useRef<HTMLDivElement>(null)
     const buttonRef = useRef<HTMLButtonElement>(null)
 
+    // Helper function to check if click is inside a Radix UI component
+    const isClickInRadixUI = (target: Element): boolean => {
+        // Check using closest() for known Radix selectors
+        if (target.closest('[data-radix-portal]')) return true
+        if (target.closest('[data-radix-popper-content-wrapper]')) return true
+        if (target.closest('[data-radix-popover-content]')) return true
+
+        // Check if any parent element has a data-radix-* attribute
+        let current: Element | null = target
+        while (current && current !== document.documentElement) {
+            const attrs = current.attributes
+            for (let i = 0; i < attrs.length; i++) {
+                if (attrs[i].name.startsWith('data-radix-')) {
+                    return true
+                }
+            }
+            current = current.parentElement
+        }
+
+        return false
+    }
+
     // Handle click outside to close popover
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -69,9 +91,8 @@ export function FloatingChatWidget() {
                 return
             }
 
-            // Don't close if clicking inside a nested Radix popover (like NewConversationPopover)
-            // Radix UI mounts popovers in portals with data-radix-portal attribute
-            if (target.closest('[data-radix-portal]')) {
+            // Don't close if clicking inside any Radix UI component (nested popovers, etc.)
+            if (isClickInRadixUI(target)) {
                 return
             }
 
