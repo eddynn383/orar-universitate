@@ -19,6 +19,9 @@ type CalendarManagerProps = {
     classrooms: Classroom[]
     teachers: Teacher[]
     disciplines: Discipline[]
+    academicYear?: string
+    learningCycle?: string
+    studyYear?: number
 }
 
 export function CalendarManager({
@@ -31,6 +34,9 @@ export function CalendarManager({
     classrooms,
     teachers,
     disciplines,
+    academicYear,
+    learningCycle,
+    studyYear,
 }: CalendarManagerProps) {
     const [entries, setEntries] = useState<CalendarEntry[]>(initialEntries)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -214,6 +220,10 @@ export function CalendarManager({
                 selectedGroupIds={selectedFilterGroupIds}
                 onTypesChange={setSelectedTypes}
                 onGroupsChange={setSelectedFilterGroupIds}
+                academicYear={academicYear}
+                learningCycle={learningCycle}
+                semester={semester}
+                studyYear={studyYear}
             />
 
             {/* Calendar */}

@@ -184,6 +184,9 @@ export default async function SemesterPage({
                         teachers={teachers}
                         disciplines={disciplines}
                         initialEntries={calendarEntries}
+                        academicYear={yearId}
+                        learningCycle={learningTypeData.learningCycle}
+                        studyYear={studyYearNumber}
                     />
                 </div>
             </div>
