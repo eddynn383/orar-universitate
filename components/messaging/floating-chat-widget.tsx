@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { MessageCircle, X, ArrowLeft, Search } from "lucide-react"
+import { MessageCircle, X, ArrowLeft, Search, Bell, BellOff } from "lucide-react"
 import { Button } from "@/components/Button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
 import { Input } from "@/components/Input"
 import { ChatWindow } from "./chat-window"
 import { NewConversationDialog } from "./new-conversation-dialog"
 import { useSocket } from "@/app/contexts/socket-context"
+import { useNotifications } from "@/app/hooks/use-notifications"
 import { formatDistanceToNow } from "date-fns"
 import { ro } from "date-fns/locale"
 import { useSession } from "next-auth/react"
@@ -52,6 +53,7 @@ export function FloatingChatWidget() {
     const [loading, setLoading] = useState(false)
     const [showNewConversationDialog, setShowNewConversationDialog] = useState(false)
     const { socket } = useSocket()
+    const { permission, isSupported, requestPermission } = useNotifications()
 
     // Load conversations when widget opens
     useEffect(() => {
@@ -211,6 +213,26 @@ export function FloatingChatWidget() {
                             <>
                                 <h2 className="text-lg font-semibold">Mesaje</h2>
                                 <div className="flex gap-2">
+                                    {isSupported && permission !== 'granted' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-s"
+                                            onClick={requestPermission}
+                                            title="Activează notificări"
+                                        >
+                                            <BellOff className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {isSupported && permission === 'granted' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-s"
+                                            title="Notificări active"
+                                            disabled
+                                        >
+                                            <Bell className="w-4 h-4 text-success-400" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon-s"
