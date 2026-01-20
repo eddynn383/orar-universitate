@@ -365,7 +365,7 @@ export function FloatingChatWidget() {
                         ) : selectedConversationId ? (
                             <ChatWindow
                                 conversationId={selectedConversationId}
-                                currentUserId={session.user.id!}
+                                currentUserId={session?.user.id!}
                             />
                         ) : null}
                     </div>
