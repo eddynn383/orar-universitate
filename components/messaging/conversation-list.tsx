@@ -118,7 +118,7 @@ export function ConversationList({
                 <h2 className="text-xl font-semibold">Mesaje</h2>
                 <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon-m"
                     onClick={onNewConversation}
                     title="Conversație nouă"
                 >
@@ -145,11 +145,10 @@ export function ConversationList({
                             <button
                                 key={conversation.id}
                                 onClick={() => onSelectConversation(conversation.id)}
-                                className={`w-full p-4 text-left hover:bg-accent transition-colors ${
-                                    selectedConversationId === conversation.id
+                                className={`w-full p-4 text-left hover:bg-accent transition-colors ${selectedConversationId === conversation.id
                                         ? 'bg-accent'
                                         : ''
-                                }`}
+                                    }`}
                             >
                                 <div className="flex gap-3">
                                     <Avatar>

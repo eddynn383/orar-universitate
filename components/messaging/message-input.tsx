@@ -68,7 +68,7 @@ export function MessageInput({ onSendMessage, conversationId }: MessageInputProp
             <Button
                 onClick={handleSend}
                 disabled={message.trim().length === 0 || isSending}
-                size="icon"
+                size="icon-m"
                 className="h-[60px] w-[60px]"
             >
                 <Send className="h-5 w-5" />
