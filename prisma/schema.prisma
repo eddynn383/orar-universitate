@@ -65,9 +65,11 @@ model User {
     logs          Log[]
     notifications Notification[] @relation("UserNotifications")
 
-    // Legăturile cu Teacher și Student
-    teacherProfile Teacher? @relation("UserAsTeacher")
-    studentProfile Student? @relation("UserAsStudent")
+    // Legăturile cu profilurile specifice rolurilor
+    teacherProfile   Teacher?   @relation("UserAsTeacher")
+    studentProfile   Student?   @relation("UserAsStudent")
+    secretaryProfile Secretary? @relation("UserAsSecretary")
+    adminProfile     Admin?     @relation("UserAsAdmin")
 
     // Relații pentru mesagerie
     conversationParticipants ConversationParticipant[]
@@ -86,8 +88,12 @@ model User {
     updatedGroups      Group[]      @relation("GroupUpdatedBy")
     createdClassrooms  Classroom[]  @relation("ClassroomCreatedBy")
     updatedClassrooms  Classroom[]  @relation("ClassroomUpdatedBy")
-    createdStudents    Student[]    @relation("StudentCreatedBy")
-    updatedStudents    Student[]    @relation("StudentUpdatedBy")
+    createdStudents     Student[]    @relation("StudentCreatedBy")
+    updatedStudents     Student[]    @relation("StudentUpdatedBy")
+    createdSecretaries  Secretary[]  @relation("SecretaryCreatedBy")
+    updatedSecretaries  Secretary[]  @relation("SecretaryUpdatedBy")
+    createdAdmins       Admin[]      @relation("AdminCreatedBy")
+    updatedAdmins       Admin[]      @relation("AdminUpdatedBy")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -165,8 +171,12 @@ model Teacher {
     image       String?
     email       String
     phone       String?
-    title       String?
-    grade       String?
+
+    // Informații academice
+    title     String? // Titlu academic (e.g., "Dr.", "Prof. Dr.", "Conf. Dr.")
+    grade     String? // Grad didactic (e.g., "Profesor Universitar", "Conferențiar", "Lector")
+    education String? @db.Text // Studii complete (e.g., "Doctorat în Informatică - Universitatea București, 2015\nMaster în AI - ...")
+
     events      Event[]
     disciplines Discipline[]
 
@@ -373,6 +383,66 @@ model Student {
     updatedAt DateTime @updatedAt
 
     @@map("students")
+}
+
+model Secretary {
+    id        String  @id @default(cuid())
+    firstname String
+    lastname  String
+    image     String?
+    email     String  @unique
+    phone     String?
+
+    // Informații specifice secretarului/secretarei
+    department       String? // Departament (e.g., "Secretariat Studenți", "Secretariat Didactic", "Secretariat Facultate")
+    office           String? // Biroul/camera (e.g., "A101", "Corp C, et. 2", "Sala Secretariat")
+    officePhone      String? // Telefon birou
+    workSchedule     String? // Program de lucru (e.g., "Luni-Vineri: 08:00-16:00", "L-J: 8-16, V: 8-14")
+    responsibilities String? @db.Text // Responsabilități/sarcini (e.g., "Gestionare documente studenți, Eliberare adeverințe, Programare examene")
+
+    // Legătura cu User
+    user   User?   @relation("UserAsSecretary", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    createdBy   User?   @relation("SecretaryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("SecretaryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("secretaries")
+}
+
+model Admin {
+    id        String  @id @default(cuid())
+    firstname String
+    lastname  String
+    image     String?
+    email     String  @unique
+    phone     String?
+
+    // Informații specifice administratorului
+    department       String? // Departament (e.g., "IT", "Resurse Umane", "Academic", "Financiar")
+    adminRole        String? // Rol specific (e.g., "Administrator IT", "Administrator Academic", "Administrator Sistem", "Administrator Baze de Date")
+    officePhone      String? // Telefon birou
+    responsibilities String? @db.Text // Responsabilități principale (e.g., "Administrare servere, Backup baze de date, Suport tehnic utilizatori")
+    accessLevel      Int     @default(1) // Nivel de acces (1-5, unde 5 = acces complet la toate sistemele)
+
+    // Legătura cu User
+    user   User?   @relation("UserAsAdmin", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    createdBy   User?   @relation("AdminCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("AdminUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("admins")
 }
 
 model StudentDiscipline {

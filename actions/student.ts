@@ -28,6 +28,53 @@ export async function createStudent(prevState: any, formData: FormData) {
     }
 
     try {
+        // Verificăm dacă există deja un User cu acest email
+        const existingUser = await prisma.user.findUnique({
+            where: { email: validation.data.email }
+        })
+
+        let userId: string | undefined
+
+        if (existingUser) {
+            // Dacă există User, verificăm dacă are deja profil de student
+            if (existingUser.role === "STUDENT") {
+                const existingStudent = await prisma.student.findUnique({
+                    where: { userId: existingUser.id }
+                })
+
+                if (existingStudent) {
+                    return {
+                        success: false,
+                        message: "Există deja un student asociat cu acest email",
+                        errors: { email: ["Există deja un student asociat cu acest email"] }
+                    }
+                }
+                userId = existingUser.id
+            } else {
+                return {
+                    success: false,
+                    message: "Acest email este deja folosit de un utilizator cu alt rol",
+                    errors: { email: ["Acest email este deja folosit de un utilizator cu alt rol"] }
+                }
+            }
+        } else {
+            // Creăm un User nou pentru acest student
+            const bcrypt = await import("bcryptjs")
+            const password = Math.random().toString(36).slice(-8) // Parolă temporară
+            const hashedPassword = await bcrypt.hash(password, 10)
+
+            const newUser = await prisma.user.create({
+                data: {
+                    name: `${validation.data.firstname} ${validation.data.lastname}`,
+                    email: validation.data.email,
+                    role: "STUDENT",
+                    password: hashedPassword,
+                    image: validation.data.image || null,
+                }
+            })
+            userId = newUser.id
+        }
+
         // Criptăm CNP-ul înainte de salvare
         const cnpEncrypted = encryptCNP(validation.data.cnp)
 
@@ -55,11 +102,18 @@ export async function createStudent(prevState: any, formData: FormData) {
                 cnpEncrypted,
                 publicId,
                 birthDate: new Date(validation.data.birthDate),
+                userId, // Legăm studentul cu User-ul
             },
         })
 
         revalidatePath("/studenti")
-        return { success: true, message: "Student creat cu succes" }
+        revalidatePath("/utilizatori")
+        return {
+            success: true,
+            message: existingUser
+                ? "Student creat cu succes și asociat cu utilizatorul existent"
+                : "Student și utilizator create cu succes"
+        }
     } catch (error) {
         console.error("Database error:", error)
         return {

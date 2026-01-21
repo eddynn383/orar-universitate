@@ -1,44 +1,44 @@
-'use server'
+"use server"
 
 import prisma from "@/lib/prisma"
-import { teacherIdSchema, teacherSchema } from "@/schemas/teacher"
+import { secretaryIdSchema, secretarySchema } from "@/schemas/secretary"
 import { revalidatePath } from "next/cache"
 import z from "zod"
 import bcrypt from "bcryptjs"
 
-export async function createTeacher(prevState: any, formData: FormData) {
+export async function createSecretary(prevState: any, formData: FormData) {
     const data = Object.fromEntries(formData)
-    const validation = teacherSchema.safeParse(data)
+    const validation = secretarySchema.safeParse(data)
 
     if (!validation.success) {
         const flattenedErrors = z.flattenError(validation.error)
         return {
             success: false,
             errors: flattenedErrors.fieldErrors,
-            message: flattenedErrors.formErrors[0] || "Validation failed"
+            message: flattenedErrors.formErrors[0] || "Validation failed",
         }
     }
 
     try {
         // Verificăm dacă există deja un User cu acest email
         const existingUser = await prisma.user.findUnique({
-            where: { email: validation.data.email }
+            where: { email: validation.data.email },
         })
 
         let userId: string | undefined
 
         if (existingUser) {
-            // Dacă există User, verificăm dacă are deja profil de profesor
-            if (existingUser.role === "PROFESOR") {
-                const existingTeacher = await prisma.teacher.findUnique({
-                    where: { userId: existingUser.id }
+            // Dacă există User, verificăm dacă are deja profil de secretar
+            if (existingUser.role === "SECRETAR") {
+                const existingSecretary = await prisma.secretary.findUnique({
+                    where: { userId: existingUser.id },
                 })
 
-                if (existingTeacher) {
+                if (existingSecretary) {
                     return {
                         success: false,
-                        message: "Există deja un profesor asociat cu acest email",
-                        errors: { email: ["Există deja un profesor asociat cu acest email"] }
+                        message: "Există deja un secretar asociat cu acest email",
+                        errors: { email: ["Există deja un secretar asociat cu acest email"] },
                     }
                 }
                 userId = existingUser.id
@@ -46,11 +46,11 @@ export async function createTeacher(prevState: any, formData: FormData) {
                 return {
                     success: false,
                     message: "Acest email este deja folosit de un utilizator cu alt rol",
-                    errors: { email: ["Acest email este deja folosit de un utilizator cu alt rol"] }
+                    errors: { email: ["Acest email este deja folosit de un utilizator cu alt rol"] },
                 }
             }
         } else {
-            // Creăm un User nou pentru acest profesor
+            // Creăm un User nou pentru acest secretar
             const password = Math.random().toString(36).slice(-8) // Parolă temporară
             const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -58,107 +58,97 @@ export async function createTeacher(prevState: any, formData: FormData) {
                 data: {
                     name: `${validation.data.firstname} ${validation.data.lastname}`,
                     email: validation.data.email,
-                    role: "PROFESOR",
+                    role: "SECRETAR",
                     password: hashedPassword,
                     image: validation.data.image || null,
-                }
+                },
             })
             userId = newUser.id
         }
 
-        await prisma.teacher.create({
+        await prisma.secretary.create({
             data: {
                 ...validation.data,
-                userId, // Legăm profesorul cu User-ul
-            }
+                userId, // Legăm secretarul cu User-ul
+            },
         })
 
-        revalidatePath("/cadre")
+        revalidatePath("/secretari")
         revalidatePath("/utilizatori")
         return {
             success: true,
             message: existingUser
-                ? "Profesor creat cu succes și asociat cu utilizatorul existent"
-                : "Profesor și utilizator create cu succes"
+                ? "Secretar creat cu succes și asociat cu utilizatorul existent"
+                : "Secretar și utilizator create cu succes",
         }
     } catch (error) {
         console.error("Database error:", error)
         return {
             success: false,
-            message: "Failed to create teacher"
+            message: "Nu s-a putut crea secretarul",
         }
     }
 }
 
-export async function updateTeacher(prevState: any, formData: FormData) {
+export async function updateSecretary(prevState: any, formData: FormData) {
     const data = Object.fromEntries(formData)
-    const userId = data.updatedBy as string
     const id = data.id as string
 
-    console.log("update Teacher data: ", data)
-
-    const validation = teacherSchema.safeParse(data)
-
-    console.log("update Teacher validation: ", validation)
+    const validation = secretarySchema.safeParse(data)
 
     if (!validation.success) {
         const { fieldErrors, formErrors } = z.flattenError(validation.error)
         return {
             success: false,
             errors: fieldErrors,
-            message: formErrors[0] || "Validation failed"
+            message: formErrors[0] || "Validation failed",
         }
     }
 
     try {
-        await prisma.teacher.update({
+        await prisma.secretary.update({
             where: { id },
-            data: {
-                ...validation.data,
-                updatedById: userId
-            }
+            data: validation.data,
         })
-        revalidatePath("/cadre")
-        return { success: true, message: "Teacher updated successfully" }
+
+        revalidatePath("/secretari")
+        return { success: true, message: "Secretar actualizat cu succes" }
     } catch (error) {
         console.error("Database error:", error)
         return {
             success: false,
-            message: "Failed to update teacher"
+            message: "Nu s-a putut actualiza secretarul",
         }
     }
 }
 
-export async function deleteTeacher(prevState: any, formData: FormData) {
+export async function deleteSecretary(prevState: any, formData: FormData) {
     const data = Object.fromEntries(formData)
-
-    console.log("data: ", data)
-
     const id = data.id as string
 
-    const validation = teacherIdSchema.safeParse(data)
+    const validation = secretaryIdSchema.safeParse(data)
 
     if (!validation.success) {
         const { fieldErrors, formErrors } = z.flattenError(validation.error)
         return {
             success: false,
             errors: fieldErrors,
-            message: formErrors[0] || "Validation failed"
+            message: formErrors[0] || "Validation failed",
         }
     }
 
     try {
-        await prisma.teacher.delete({
+        await prisma.secretary.delete({
             where: { id },
         })
 
-        revalidatePath("/cadre")
-        return { success: true, message: "Teacher was successfully deleted" }
+        revalidatePath("/secretari")
+        return { success: true, message: "Secretarul a fost șters cu succes" }
     } catch (error) {
         console.error("Database error:", error)
         return {
             success: false,
-            message: "Failed to delete teacher"
+            message: "Nu s-a putut șterge secretarul",
         }
     }
 }
