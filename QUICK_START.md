@@ -73,11 +73,55 @@ Aplicația va rula pe: `http://localhost:3000`
 
 ## ✅ Pasul 6: Testare Funcționalități
 
+### 🧭 Navigație Actualizată & Redirect-uri Automate
+
+**După login, vei fi redirecționat automat către:**
+- 🎓 **PROFESOR** → `/profesor/dashboard`
+- 📚 **STUDENT** → `/student/dashboard`
+- 👨‍💼 **ADMIN/SECRETAR** → `/utilizatori`
+- 👤 **Neautentificat** → `/orar`
+
+**Meniu Navigație per Rol:**
+
+**🔴 ADMIN:**
+```
+├── Orar
+├── Utilizatori (înlocuiește "Cadre didactice")
+├── Discipline
+├── Grupe
+├── Sali clasa
+└── Import Studenți (NOU!)
+```
+
+**🔵 SECRETAR:**
+```
+├── Orar
+├── Utilizatori (înlocuiește "Cadre didactice")
+├── Discipline
+├── Grupe
+├── Sali clasa
+└── Import Studenți (NOU!)
+```
+
+**🟢 PROFESOR:**
+```
+├── Dashboard (NOU!)
+└── Orar
+```
+
+**🟡 STUDENT:**
+```
+├── Dashboard (NOU!)
+└── Orar
+```
+
 ### 1️⃣ Testează Pagina Utilizatori
 
 **URL:** `http://localhost:3000/utilizatori`
 
 **Login ca:** ADMIN sau SECRETAR
+
+**Sau:** Click pe "Utilizatori" în meniul de navigație (prima pagină după login pentru admin/secretar)
 
 **Testează:**
 - [ ] Vezi lista utilizatori
@@ -90,6 +134,8 @@ Aplicația va rula pe: `http://localhost:3000`
 **URL:** `http://localhost:3000/profesor/dashboard`
 
 **Login ca:** PROFESOR
+
+**Sau:** Click pe "Dashboard" în meniul de navigație (prima pagină după login pentru profesori)
 
 **Credențiale default:**
 - Email: [email profesor din DB]
@@ -106,6 +152,8 @@ Aplicația va rula pe: `http://localhost:3000`
 **URL:** `http://localhost:3000/student/dashboard`
 
 **Login ca:** STUDENT
+
+**Sau:** Click pe "Dashboard" în meniul de navigație (prima pagină după login pentru studenți)
 
 **Credențiale default:**
 - Email: [email student din DB]
@@ -124,6 +172,8 @@ Aplicația va rula pe: `http://localhost:3000`
 **URL:** `http://localhost:3000/admin/import-studenti`
 
 **Login ca:** ADMIN sau SECRETAR
+
+**Sau:** Click pe "Import Studenți" în meniul de navigație
 
 **Testează:**
 - [ ] Descarcă template CSV
@@ -190,6 +240,12 @@ npx prisma generate
 - Verifică în DB că `role` este setat corect
 - Verifică că `firstname` și `lastname` sunt populate
 
+### ❌ Nu sunt redirecționat către dashboard
+
+- Verifică că sesiunea este activă (logout + login)
+- Verifică că rolul este setat corect în DB
+- Curăță cache-ul browserului
+
 ## ✅ Checklist Testare Completă
 
 Înainte de merge, verifică:
@@ -197,6 +253,8 @@ npx prisma generate
 - [ ] Migrația s-a rulat cu succes (0 erori)
 - [ ] Toți profesorii pot face login
 - [ ] Toți studenții pot face login
+- [ ] Redirect automat funcționează per rol
+- [ ] Navigația afișează link-uri corecte per rol
 - [ ] Profesorii văd disciplinele lor în dashboard
 - [ ] Studenții văd cursurile lor în dashboard
 - [ ] Notele sunt vizibile pentru studenți
@@ -248,12 +306,11 @@ Dacă totul funcționează:
 
 **Branch:** `claude/merge-users-admin-page-2j8T0`
 **Status:** ✅ Ready for Testing
-**Commits:** 5 commits
-**Files Changed:** 25+ files
-**Lines Added:** ~4500 lines
+**Commits:** 7 commits
+**Files Changed:** 27+ files
+**Lines Added:** ~5000 lines
 
-**Data:** 2026-01-21
-**Autor:** Claude (Anthropic)
+**Ultimul update:** 2026-01-21 - Navigație și redirect-uri actualizate!
 
 ---
 
