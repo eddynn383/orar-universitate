@@ -54,7 +54,7 @@ export async function createUser(prevState: any, formData: FormData) {
             }
         })
 
-        // Creează automat Teacher sau Student în funcție de rol
+        // Creează automat profilul corespunzător în funcție de rol
         if (validation.data.role === "PROFESOR") {
             await prisma.teacher.create({
                 data: {
@@ -64,6 +64,7 @@ export async function createUser(prevState: any, formData: FormData) {
                     phone: null,
                     title: null,
                     grade: null,
+                    education: null,
                     image: validation.data.image || null,
                     userId: user.id,
                     createdById: user.id,
@@ -92,11 +93,50 @@ export async function createUser(prevState: any, formData: FormData) {
                     updatedById: user.id,
                 }
             })
+        } else if (validation.data.role === "SECRETAR") {
+            await prisma.secretary.create({
+                data: {
+                    firstname,
+                    lastname,
+                    email: validation.data.email,
+                    phone: null,
+                    department: null,
+                    office: null,
+                    officePhone: null,
+                    workSchedule: null,
+                    responsibilities: null,
+                    image: validation.data.image || null,
+                    userId: user.id,
+                    createdById: user.id,
+                    updatedById: user.id,
+                }
+            })
+        } else if (validation.data.role === "ADMIN") {
+            await prisma.admin.create({
+                data: {
+                    firstname,
+                    lastname,
+                    email: validation.data.email,
+                    phone: null,
+                    department: null,
+                    adminRole: null,
+                    officePhone: null,
+                    responsibilities: null,
+                    accessLevel: 1, // Nivel de acces default
+                    image: validation.data.image || null,
+                    userId: user.id,
+                    createdById: user.id,
+                    updatedById: user.id,
+                }
+            })
         }
 
         revalidatePath("/users")
+        revalidatePath("/utilizatori")
         revalidatePath("/cadre")
         revalidatePath("/studenti")
+        revalidatePath("/secretari")
+        revalidatePath("/administratori")
         return { success: true, message: "Utilizator creat cu succes" }
     } catch (error) {
         console.error("Database error:", error)
@@ -142,6 +182,8 @@ export async function updateUser(prevState: any, formData: FormData) {
             include: {
                 teacherProfile: true,
                 studentProfile: true,
+                secretaryProfile: true,
+                adminProfile: true,
             }
         })
 
@@ -175,93 +217,172 @@ export async function updateUser(prevState: any, formData: FormData) {
         const oldRole = currentUser.role
         const newRole = validation.data.role
 
-        // Dacă rolul s-a schimbat din PROFESOR în altceva, șterge profilul de profesor
-        if (oldRole === "PROFESOR" && newRole !== "PROFESOR" && currentUser.teacherProfile) {
-            await prisma.teacher.delete({
-                where: { id: currentUser.teacherProfile.id }
-            })
+        // Șterge profilurile vechi dacă rolul s-a schimbat
+        if (oldRole !== newRole) {
+            if (oldRole === "PROFESOR" && currentUser.teacherProfile) {
+                await prisma.teacher.delete({
+                    where: { id: currentUser.teacherProfile.id }
+                })
+            }
+            if (oldRole === "STUDENT" && currentUser.studentProfile) {
+                await prisma.student.delete({
+                    where: { id: currentUser.studentProfile.id }
+                })
+            }
+            if (oldRole === "SECRETAR" && currentUser.secretaryProfile) {
+                await prisma.secretary.delete({
+                    where: { id: currentUser.secretaryProfile.id }
+                })
+            }
+            if (oldRole === "ADMIN" && currentUser.adminProfile) {
+                await prisma.admin.delete({
+                    where: { id: currentUser.adminProfile.id }
+                })
+            }
         }
 
-        // Dacă rolul s-a schimbat din STUDENT în altceva, șterge profilul de student
-        if (oldRole === "STUDENT" && newRole !== "STUDENT" && currentUser.studentProfile) {
-            await prisma.student.delete({
-                where: { id: currentUser.studentProfile.id }
-            })
-        }
+        // Creează sau actualizează profilul corespunzător rolului nou
+        if (newRole === "PROFESOR") {
+            if (currentUser.teacherProfile) {
+                // Actualizează profilul existent
+                await prisma.teacher.update({
+                    where: { id: currentUser.teacherProfile.id },
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        image: validation.data.image || null,
+                        updatedById: validation.data.id,
+                    }
+                })
+            } else {
+                // Creează profil nou
+                await prisma.teacher.create({
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        phone: null,
+                        title: null,
+                        grade: null,
+                        education: null,
+                        image: validation.data.image || null,
+                        userId: validation.data.id,
+                        createdById: validation.data.id,
+                        updatedById: validation.data.id,
+                    }
+                })
+            }
+        } else if (newRole === "STUDENT") {
+            if (currentUser.studentProfile) {
+                // Actualizează profilul existent
+                await prisma.student.update({
+                    where: { id: currentUser.studentProfile.id },
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        image: validation.data.image || null,
+                        updatedById: validation.data.id,
+                    }
+                })
+            } else {
+                // Creează profil nou
+                const publicId = `STD${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 5).toUpperCase()}`
 
-        // Dacă rolul s-a schimbat în PROFESOR și nu există profil, creează-l
-        if (newRole === "PROFESOR" && !currentUser.teacherProfile) {
-            await prisma.teacher.create({
-                data: {
-                    firstname,
-                    lastname,
-                    email: validation.data.email,
-                    phone: null,
-                    title: null,
-                    grade: null,
-                    image: validation.data.image || null,
-                    userId: validation.data.id,
-                    createdById: validation.data.id,
-                    updatedById: validation.data.id,
-                }
-            })
-        }
-
-        // Dacă rolul s-a schimbat în STUDENT și nu există profil, creează-l
-        if (newRole === "STUDENT" && !currentUser.studentProfile) {
-            const publicId = `STD${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 5).toUpperCase()}`
-
-            await prisma.student.create({
-                data: {
-                    firstname,
-                    lastname,
-                    email: validation.data.email,
-                    publicId,
-                    sex: "MASCULIN",
-                    cnpEncrypted: "0000000000000",
-                    birthDate: new Date("2000-01-01"),
-                    birthPlace: "Necompletat",
-                    citizenship: "Română",
-                    maritalStatus: "Necăsătorit/ă",
-                    image: validation.data.image || null,
-                    userId: validation.data.id,
-                    createdById: validation.data.id,
-                    updatedById: validation.data.id,
-                }
-            })
-        }
-
-        // Actualizează profilul existent de profesor dacă există
-        if (newRole === "PROFESOR" && currentUser.teacherProfile) {
-            await prisma.teacher.update({
-                where: { id: currentUser.teacherProfile.id },
-                data: {
-                    firstname,
-                    lastname,
-                    email: validation.data.email,
-                    image: validation.data.image || null,
-                    updatedById: validation.data.id,
-                }
-            })
-        }
-
-        // Actualizează profilul existent de student dacă există
-        if (newRole === "STUDENT" && currentUser.studentProfile) {
-            await prisma.student.update({
-                where: { id: currentUser.studentProfile.id },
-                data: {
-                    firstname,
-                    lastname,
-                    email: validation.data.email,
-                    image: validation.data.image || null,
-                    updatedById: validation.data.id,
-                }
-            })
+                await prisma.student.create({
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        publicId,
+                        sex: "MASCULIN",
+                        cnpEncrypted: "0000000000000",
+                        birthDate: new Date("2000-01-01"),
+                        birthPlace: "Necompletat",
+                        citizenship: "Română",
+                        maritalStatus: "Necăsătorit/ă",
+                        image: validation.data.image || null,
+                        userId: validation.data.id,
+                        createdById: validation.data.id,
+                        updatedById: validation.data.id,
+                    }
+                })
+            }
+        } else if (newRole === "SECRETAR") {
+            if (currentUser.secretaryProfile) {
+                // Actualizează profilul existent
+                await prisma.secretary.update({
+                    where: { id: currentUser.secretaryProfile.id },
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        image: validation.data.image || null,
+                        updatedById: validation.data.id,
+                    }
+                })
+            } else {
+                // Creează profil nou
+                await prisma.secretary.create({
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        phone: null,
+                        department: null,
+                        office: null,
+                        officePhone: null,
+                        workSchedule: null,
+                        responsibilities: null,
+                        image: validation.data.image || null,
+                        userId: validation.data.id,
+                        createdById: validation.data.id,
+                        updatedById: validation.data.id,
+                    }
+                })
+            }
+        } else if (newRole === "ADMIN") {
+            if (currentUser.adminProfile) {
+                // Actualizează profilul existent
+                await prisma.admin.update({
+                    where: { id: currentUser.adminProfile.id },
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        image: validation.data.image || null,
+                        updatedById: validation.data.id,
+                    }
+                })
+            } else {
+                // Creează profil nou
+                await prisma.admin.create({
+                    data: {
+                        firstname,
+                        lastname,
+                        email: validation.data.email,
+                        phone: null,
+                        department: null,
+                        adminRole: null,
+                        officePhone: null,
+                        responsibilities: null,
+                        accessLevel: 1,
+                        image: validation.data.image || null,
+                        userId: validation.data.id,
+                        createdById: validation.data.id,
+                        updatedById: validation.data.id,
+                    }
+                })
+            }
         }
 
         revalidatePath("/users")
+        revalidatePath("/utilizatori")
         revalidatePath("/cadre")
         revalidatePath("/studenti")
+        revalidatePath("/secretari")
+        revalidatePath("/administratori")
         return { success: true, message: "Utilizator actualizat cu succes" }
     } catch (error) {
         console.error("Database error:", error)

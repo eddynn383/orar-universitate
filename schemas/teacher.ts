@@ -1,13 +1,17 @@
 import { z } from "zod"
 
 export const teacherSchema = z.object({
-    title: z.string().min(1, "Te rog sa selectezi un titlu"),
-    grade: z.string().min(1, "Te rog sa selectezi un grad"),
+    // Date de bază
     firstname: z.string().min(2, "Prenumele trebuie sa fie format din minim 2 caractere"),
     lastname: z.string().min(2, "Numele trebuie sa fie format din minim 2 caractere"),
-    email: z.email("Adresa de email introdusa este invalida"),
+    email: z.string().email("Adresa de email introdusa este invalida"),
     phone: z.string().optional(),
     image: z.url("URL invalid pentru imagine").optional().nullable().or(z.literal("")),
+
+    // Informații academice
+    title: z.string().optional(),
+    grade: z.string().optional(),
+    education: z.string().optional(),
 })
 
 export const teacherIdSchema = z.object({
