@@ -60,12 +60,50 @@ model User {
     country String?
     bio     String? @db.Text
 
+    // Câmpuri pentru PROFESOR (opționale - doar dacă role = PROFESOR)
+    firstname String? // Prenume
+    lastname  String? // Nume de familie
+    title     String? // ex: "Dr.", "Prof. Dr."
+    grade     String? // ex: "Conferențiar", "Lector"
+
+    // Câmpuri pentru STUDENT (opționale - doar dacă role = STUDENT)
+    publicId String? @unique // Cod de identificare public (pentru GDPR - afișare note publice)
+
+    // Date personale (pentru studenți)
+    sex           Sex?
+    cnpEncrypted  String? // CNP criptat pentru securitate
+    birthDate     DateTime?
+    birthPlace    String?
+    ethnicity     String?
+    religion      String?
+    citizenship   String? // default: "Română"
+    maritalStatus String? // default: "Necăsătorit/ă"
+
+    // Situație socială (pentru studenți)
+    socialSituation        String?
+    isOrphan               Boolean? @default(false)
+    needsSpecialConditions Boolean? @default(false)
+
+    // Familie
+    parentsNames String?
+
+    // Adresă rezidențială (pentru studenți - mai specific decât address)
+    residentialAddress String?
+
+    // Informații medicale (pentru studenți)
+    specialMedicalCondition String?
+    disability              Disability? @default(NONE)
+
+    // Relație cu grup (pentru studenți)
+    groupId String?
+    group   Group?  @relation("UserGroup", fields: [groupId], references: [id], onDelete: SetNull)
+
     accounts      Account[]
     sessions      Session[]
     logs          Log[]
     notifications Notification[] @relation("UserNotifications")
 
-    // Legăturile cu Teacher și Student
+    // DEPRECATED - Legăturile vechi cu Teacher și Student (vor fi șterse după migrare)
     teacherProfile Teacher? @relation("UserAsTeacher")
     studentProfile Student? @relation("UserAsStudent")
 
@@ -74,6 +112,7 @@ model User {
     sentMessages             Message[]                 @relation("MessageSender")
     messageReactions         MessageReaction[]         @relation("UserMessageReactions")
 
+    // Relații pentru entități create/actualizate
     createdEvents      Event[]      @relation("EventCreatedBy")
     updatedEvents      Event[]      @relation("EventUpdatedBy")
     approvedEvents     Event[]      @relation("EventApprovedBy")
@@ -88,6 +127,14 @@ model User {
     updatedClassrooms  Classroom[]  @relation("ClassroomUpdatedBy")
     createdStudents    Student[]    @relation("StudentCreatedBy")
     updatedStudents    Student[]    @relation("StudentUpdatedBy")
+
+    // Relații pentru noi funcționalități
+    teachingDisciplines   Discipline[]     @relation("UserTeachingDisciplines") // Discipline predate de profesor
+    grades                Grade[]          @relation("UserGrades") // Note primite de student
+    studentDisciplines    StudentDiscipline[] @relation("UserStudentDisciplines") // Discipline la care e înscris studentul
+    uploadedCourseMaterials CourseMaterial[] @relation("UserUploadedMaterials") // Materiale încărcate de profesor
+    createdExams          Exam[]           @relation("UserCreatedExams") // Examene create de profesor
+    givenGrades           Grade[]          @relation("UserGivenGrades") // Note date de profesor
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -207,8 +254,15 @@ model Classroom {
 model Discipline {
     id             String              @id @default(cuid())
     name           String
-    teacherId      String
-    teacher        Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+    // DEPRECATED - teacherId vechi (va fi șters după migrare)
+    teacherId      String?
+    teacher        Teacher?            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+    // NOU - profesor ca User direct
+    professorId    String?
+    professor      User?               @relation("UserTeachingDisciplines", fields: [professorId], references: [id], onDelete: Cascade)
+
     learningTypeId String?
     learningType   LearningType?       @relation(fields: [learningTypeId], references: [id], onDelete: Cascade)
     studyYearId    String
@@ -217,6 +271,8 @@ model Discipline {
     events         Event[]
     grades         Grade[]
     students       StudentDiscipline[]
+    courseMaterials CourseMaterial[]   // Materiale de curs
+    exams          Exam[]              // Examene
 
     createdBy   User?   @relation("DisciplineCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
@@ -293,7 +349,12 @@ model Group {
     studyYear      StudyYear     @relation(fields: [studyYearId], references: [id])
     semester       Int           @default(1)
     events         EventGroup[]
+
+    // DEPRECATED - studenți vechi (va fi șters după migrare)
     students       Student[]
+
+    // NOU - studenți ca User direct
+    userStudents   User[]        @relation("UserGroup")
 
     createdBy   User?   @relation("GroupCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
     createdById String?
@@ -376,29 +437,135 @@ model Student {
 }
 
 model StudentDiscipline {
-    student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-    studentId    String
+    id           String     @id @default(cuid()) // ID unic pentru a evita probleme cu migrarea
+
+    // DEPRECATED - student vechi (va fi șters după migrare)
+    student      Student?   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+    studentId    String?
+
+    // NOU - user ca student
+    user         User?      @relation("UserStudentDisciplines", fields: [userId], references: [id], onDelete: Cascade)
+    userId       String?
+
     discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
     disciplineId String
 
-    @@id([studentId, disciplineId])
+    enrolledAt   DateTime   @default(now()) // Data înscrierii la disciplină
+
+    @@unique([disciplineId, userId])
+    @@unique([disciplineId, studentId]) // Pentru compatibilitate temporară
     @@map("student_disciplines")
 }
 
 model Grade {
     id           String     @id @default(cuid())
     value        Float // Nota (ex: 10, 9.5, etc.)
-    gradeType    String // ex: "Examen", "Colocviu", "Laborator", "Prezentare"
+    gradeType    String // ex: "Examen", "Colocviu", "Laborator", "Prezentare", "Activitate"
     date         DateTime   @default(now())
-    studentId    String
-    student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+    feedback     String?    @db.Text // Feedback de la profesor
+
+    // DEPRECATED - student vechi (va fi șters după migrare)
+    studentId    String?
+    student      Student?   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+    // NOU - user ca student
+    userId       String?
+    user         User?      @relation("UserGrades", fields: [userId], references: [id], onDelete: Cascade)
+
     disciplineId String
     discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+    // Relație cu examen (opțional - doar pentru note de examen)
+    examId       String?
+    exam         Exam?      @relation(fields: [examId], references: [id], onDelete: SetNull)
+
+    // Profesor care a dat nota
+    professorId  String?
+    professor    User?      @relation("UserGivenGrades", fields: [professorId], references: [id], onDelete: SetNull)
+
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
 
-    @@index([studentId, disciplineId])
+    @@index([userId, disciplineId])
+    @@index([studentId, disciplineId]) // Pentru compatibilitate temporară
+    @@index([examId])
     @@map("grades")
+}
+
+model CourseMaterial {
+    id          String     @id @default(cuid())
+    title       String
+    description String?    @db.Text
+
+    // Disciplina la care aparține materialul
+    disciplineId String
+    discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+    // Fișier
+    fileUrl      String     // URL către fișier (stocat în UploadThing sau alt storage)
+    fileName     String
+    fileSize     Int?       // în bytes
+    mimeType     String?
+
+    // Categorie (Curs, Seminar, Laborator, Altele)
+    category     String     @default("Curs")
+
+    // Vizibilitate
+    isPublished  Boolean    @default(true) // Dacă este vizibil pentru studenți
+
+    // Profesor care a încărcat materialul
+    uploadedById String
+    uploadedBy   User       @relation("UserUploadedMaterials", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    @@index([disciplineId])
+    @@index([uploadedById])
+    @@map("course_materials")
+}
+
+model Exam {
+    id          String     @id @default(cuid())
+    title       String
+    description String?    @db.Text
+
+    // Disciplina la care aparține examenul
+    disciplineId String
+    discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+    // Data și durata
+    examDate     DateTime
+    duration     Int?       // Durata în minute
+    location     String?    // Sala de examen
+
+    // Tip examen (Examen, Colocviu, Parțial, Test)
+    examType     String     @default("Examen")
+
+    // Punctaj maxim
+    maxScore     Float      @default(10)
+
+    // Instrucțiuni și observații
+    instructions String?    @db.Text
+    notes        String?    @db.Text
+
+    // Vizibilitate
+    isPublished  Boolean    @default(false) // Dacă este vizibil pentru studenți
+
+    // Note asociate examenului
+    grades       Grade[]
+
+    // Profesor care a creat examenul
+    createdById  String
+    createdBy    User       @relation("UserCreatedExams", fields: [createdById], references: [id], onDelete: Cascade)
+
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    @@index([disciplineId])
+    @@index([examDate])
+    @@index([createdById])
+    @@map("exams")
 }
 
 model Log {
