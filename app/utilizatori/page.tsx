@@ -1,21 +1,22 @@
-// app/users/page.tsx
+// app/utilizatori/page.tsx
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/Avatar"
 import { Card, CardContent } from "@/components/Card"
 import { H1, H2, P } from "@/components/Typography"
-import { CirclePlus, Mail, Shield } from "lucide-react"
+import { CirclePlus, Mail, Shield, GraduationCap, User, BookOpen } from "lucide-react"
 import { CardActions } from "./_components/CardActions"
 import { CreateUserModal } from "./_components/CreateUserModal"
 import { SearchInput } from "./_components/Search"
+import { RoleFilter } from "./_components/RoleFilter"
 import { Suspense } from "react"
 import { CardListSkeleton } from "@/components/Skeleton/CardSkeleton"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/Empty"
 import { getAllUsers } from "@/data/user"
-import { AdminOnlyServer } from "@/components/RoleGateServer"
+import { AdminOnlyServer, AdminOrSecretarOnlyServer } from "@/components/RoleGateServer"
 import { Button } from "@/components/Button"
 
 type UsersPageProps = {
-    searchParams: Promise<{ search?: string }>
+    searchParams: Promise<{ search?: string; role?: string }>
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -38,22 +39,43 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     const users = await getAllUsers()
     const params = await searchParams
 
-    // Filter users based on search query
+    // Filter users based on search query and role
     const searchQuery = params.search?.toLowerCase() || ""
+    const roleFilter = params.role || "ALL"
 
     const filteredUsers = users.filter((user) => {
+        // Filter by role
+        if (roleFilter !== "ALL" && user.role !== roleFilter) {
+            return false
+        }
+
+        // Filter by search query
         if (!searchQuery) return true
 
         const name = user.name?.toLowerCase() || ""
+        const firstname = user.firstname?.toLowerCase() || ""
+        const lastname = user.lastname?.toLowerCase() || ""
         const email = user.email?.toLowerCase() || ""
         const role = user.role.toLowerCase()
+        const publicId = user.publicId?.toLowerCase() || ""
 
         return (
             name.includes(searchQuery) ||
+            firstname.includes(searchQuery) ||
+            lastname.includes(searchQuery) ||
             email.includes(searchQuery) ||
-            role.includes(searchQuery)
+            role.includes(searchQuery) ||
+            publicId.includes(searchQuery)
         )
     })
+
+    // Get display name for users
+    const getDisplayName = (user: any) => {
+        if (user.firstname && user.lastname) {
+            return `${user.firstname} ${user.lastname}`
+        }
+        return user.name || user.email?.split('@')[0] || "Utilizator"
+    }
 
     return (
         <div className="content grid grid-rows-[auto_1fr] h-full overflow-hidden">
@@ -62,10 +84,11 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                     <div className="flex flex-col gap-2">
                         <H1 className="text-left text-2xl">Utilizatori</H1>
                         <P className="text-base [&:not(:first-child)]:mt-0">
-                            Gestionează utilizatorii care au acces la aplicație
+                            Gestionează utilizatorii aplicației (profesori, studenți, administratori)
                         </P>
                     </div>
                     <div className="flex justify-end items-end gap-4 flex-1">
+                        <RoleFilter currentRole={roleFilter} />
                         <SearchInput placeholder="Caută utilizatori..." />
                     </div>
                 </div>
@@ -112,9 +135,10 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                             ) : (
                                 <ul className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] auto-rows-min gap-6 w-full">
                                     {filteredUsers.map((user) => {
-                                        const initials = user.name
-                                            ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-                                            : (user.email?.[0]?.toUpperCase() ?? "")
+                                        const displayName = getDisplayName(user)
+                                        const initials = (user.firstname && user.lastname)
+                                            ? `${user.firstname[0]}${user.lastname[0]}`.toUpperCase()
+                                            : displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
 
                                         return (
                                             <li key={user.id}>
@@ -128,14 +152,48 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                                                                 </AvatarFallback>
                                                             </Avatar>
                                                             <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                                                {/* Name with title for professors */}
                                                                 <H2 className="text-lg pb-0 truncate">
-                                                                    {user.name || "Utilizator"}
+                                                                    {user.role === 'PROFESOR' && user.title && `${user.title} `}
+                                                                    {displayName}
                                                                 </H2>
 
                                                                 {/* Role badge */}
                                                                 <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${ROLE_COLORS[user.role] || ROLE_COLORS.USER}`}>
                                                                     {ROLE_LABELS[user.role] || user.role}
                                                                 </span>
+
+                                                                {/* Professor grade */}
+                                                                {user.role === 'PROFESOR' && user.grade && (
+                                                                    <div className="flex items-center gap-1.5 text-primary-600">
+                                                                        <BookOpen className="size-4 text-brand-400 flex-shrink-0" />
+                                                                        <span className="text-sm truncate">
+                                                                            {user.grade}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Student group and publicId */}
+                                                                {user.role === 'STUDENT' && (
+                                                                    <>
+                                                                        {user.group && (
+                                                                            <div className="flex items-center gap-1.5 text-primary-600">
+                                                                                <GraduationCap className="size-4 text-brand-400 flex-shrink-0" />
+                                                                                <span className="text-sm truncate">
+                                                                                    Grupa {user.group.name}
+                                                                                </span>
+                                                                            </div>
+                                                                        )}
+                                                                        {user.publicId && (
+                                                                            <div className="flex items-center gap-1.5 text-primary-600">
+                                                                                <User className="size-4 text-brand-400 flex-shrink-0" />
+                                                                                <span className="text-sm truncate">
+                                                                                    ID: {user.publicId}
+                                                                                </span>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                )}
 
                                                                 {/* Email */}
                                                                 <div className="flex items-center gap-1.5 text-primary-600 mt-1">
