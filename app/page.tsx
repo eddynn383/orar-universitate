@@ -1,5 +1,22 @@
 import { redirect } from 'next/navigation';
+import { auth } from '@/auth';
 
 export default async function HomePage() {
-    redirect(`/orar`);
+    const session = await auth();
+
+    // Redirect bazat pe rol
+    if (session?.user) {
+        const role = session.user.role;
+
+        if (role === 'PROFESOR') {
+            redirect('/profesor/dashboard');
+        } else if (role === 'STUDENT') {
+            redirect('/student/dashboard');
+        } else if (role === 'ADMIN' || role === 'SECRETAR') {
+            redirect('/utilizatori');
+        }
+    }
+
+    // Default pentru utilizatori neautentificați sau cu rol USER
+    redirect('/orar');
 }
