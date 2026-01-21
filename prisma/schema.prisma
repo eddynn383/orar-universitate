@@ -345,8 +345,8 @@ model Student {
     birthPlace    String
     ethnicity     String?
     religion      String?
-    citizenship   String   @default("Română")
-    maritalStatus String   @default("Necăsătorit/ă")
+    citizenship   String        @default("Română")
+    maritalStatus MaritalStatus @default(NECASATORIT)
 
     // Situație socială
     socialSituation        String?
@@ -354,7 +354,10 @@ model Student {
     needsSpecialConditions Boolean @default(false)
 
     // Familie
-    parentsNames String?
+    motherFirstname String? // Prenume mamă
+    motherLastname  String? // Nume mamă
+    fatherFirstname String? // Prenume tată
+    fatherLastname  String? // Nume tată
 
     // Adresă
     residentialAddress String?
@@ -523,6 +526,13 @@ enum Disability {
     NONE
     GRAD_1
     GRAD_2
+}
+
+enum MaritalStatus {
+    NECASATORIT // Necăsătorit/ă
+    CASATORIT   // Căsătorit/ă
+    DIVORTAT    // Divorțat/ă
+    VADUV       // Văduv/ă
 }
 
 enum ConversationType {

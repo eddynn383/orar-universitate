@@ -75,12 +75,68 @@ model Teacher {
 
 #### 3. Student (Studenți)
 
-Schema existentă rămâne neschimbată. Include:
-- **Date personale**: CNP criptat, sex, dată și loc naștere, cetățenie, stare civilă
-- **Situație socială**: situație socială, este orfan?, nevoi speciale?
-- **Informații medicale**: condiții medicale speciale, dizabilitate
-- **Familie**: nume părinți
-- **Legătură cu User**
+```prisma
+model Student {
+    id        String  @id @default(cuid())
+    firstname String
+    lastname  String
+    image     String?
+    email     String  @unique
+    publicId  String  @unique
+
+    // Date personale
+    sex           Sex
+    cnpEncrypted  String        // CNP criptat cu AES-256-CBC
+    birthDate     DateTime
+    birthPlace    String
+    ethnicity     String?
+    religion      String?
+    citizenship   String        @default("Română")
+    maritalStatus MaritalStatus @default(NECASATORIT)  // ENUM: NECASATORIT, CASATORIT, DIVORTAT, VADUV
+
+    // Situație socială
+    socialSituation        String?
+    isOrphan               Boolean @default(false)
+    needsSpecialConditions Boolean @default(false)
+
+    // Familie - câmpuri separate pentru fiecare părinte
+    motherFirstname String? // Prenume mamă
+    motherLastname  String? // Nume mamă
+    fatherFirstname String? // Prenume tată
+    fatherLastname  String? // Nume tată
+
+    // Adresă
+    residentialAddress String?
+
+    // Informații medicale
+    specialMedicalCondition String?
+    disability              Disability @default(NONE)
+
+    // Legătura cu User
+    user   User?   @relation("UserAsStudent", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    // ... alte relații
+}
+
+enum MaritalStatus {
+    NECASATORIT // Necăsătorit/ă
+    CASATORIT   // Căsătorit/ă
+    DIVORTAT    // Divorțat/ă
+    VADUV       // Văduv/ă
+}
+
+enum Sex {
+    MASCULIN
+    FEMININ
+}
+
+enum Disability {
+    NONE
+    GRAD_1
+    GRAD_2
+}
+```
 
 #### 4. Secretary (Secretari/Secretare) - **NOU**
 
@@ -526,11 +582,61 @@ Folosește ca model paginile existente `/app/studenti/page.tsx` și `/app/cadre/
 - `/app/secretari/_components/SecretaryForm/index.tsx`
 - `/app/administratori/_components/AdminForm/index.tsx`
 
-### 4. Implementează funcționalitatea de import
+### 4. Utilizează funcționalitatea de import
 
-- Creează `/lib/import.ts` - Logică de procesare import
-- Creează `/app/api/[entitate]/import/route.ts` - API endpoints
-- Creează componentele UI pentru import
+✅ **Funcționalitatea de import este complet implementată!**
+
+Pentru a adăuga buton de import pe orice pagină:
+
+```tsx
+import { ImportModal } from "@/components/ImportModal"
+
+// Exemplu pentru studenți
+<ImportModal
+    title="Importă Studenți"
+    description="Încarcă un fișier CSV sau XLSX cu datele studenților"
+    entityType="students"
+    templateColumns={[
+        { key: "firstname", label: "Prenume", example: "Ion" },
+        { key: "lastname", label: "Nume", example: "Popescu" },
+        { key: "email", label: "Email", example: "ion.popescu@student.ro" },
+        { key: "sex", label: "Sex", example: "MASCULIN" },
+        { key: "cnp", label: "CNP", example: "1990101123456" },
+        { key: "birthDate", label: "Data Nașterii", example: "1999-01-01" },
+        { key: "birthPlace", label: "Locul Nașterii", example: "București" },
+        { key: "citizenship", label: "Cetățenie", example: "Română" },
+        { key: "maritalStatus", label: "Stare Civilă", example: "NECASATORIT" },
+        { key: "motherFirstname", label: "Prenume Mamă", example: "Maria" },
+        { key: "motherLastname", label: "Nume Mamă", example: "Popescu" },
+        { key: "fatherFirstname", label: "Prenume Tată", example: "Gheorghe" },
+        { key: "fatherLastname", label: "Nume Tată", example: "Popescu" },
+        { key: "isOrphan", label: "Orfan?", example: "false" },
+        { key: "needsSpecialConditions", label: "Nevoi Speciale?", example: "false" },
+        { key: "disability", label: "Dizabilitate", example: "NONE" },
+    ]}
+    onImportComplete={() => {
+        // Refresh lista
+        router.refresh()
+    }}
+/>
+```
+
+**Fișiere implementate:**
+- ✅ `/lib/import.ts` - Biblioteca de parsare CSV/XLSX
+- ✅ `/actions/import.ts` - Server actions pentru import (importStudents, importTeachers, importSecretaries, importAdmins)
+- ✅ `/app/api/students/import/route.ts` - API endpoint pentru import studenți
+- ✅ `/app/api/teachers/import/route.ts` - API endpoint pentru import profesori
+- ✅ `/app/api/secretaries/import/route.ts` - API endpoint pentru import secretari
+- ✅ `/app/api/admins/import/route.ts` - API endpoint pentru import administratori
+- ✅ `/components/ImportModal/index.tsx` - Componentă UI pentru import
+
+**Caracteristici:**
+- 📄 Suport pentru CSV și XLSX
+- 📥 Download template CSV
+- ✅ Validare automată cu Zod
+- 🔄 Creare automată User pentru fiecare entitate importată
+- 📊 Raportare detaliată (succese, eșecuri, erori)
+- 🎨 UI modern cu Dialog, progress și results
 
 ### 5. Testare
 
@@ -560,4 +666,8 @@ Pentru întrebări sau probleme, verifică:
 ---
 
 **Data ultimei actualizări**: 2026-01-21
-**Versiune**: 1.0
+**Versiune**: 2.0 - Actualizat cu:
+- Câmpuri separate pentru părinți (motherFirstname, motherLastname, fatherFirstname, fatherLastname)
+- Enum MaritalStatus pentru stare civilă (NECASATORIT, CASATORIT, DIVORTAT, VADUV)
+- Funcționalitate completă de import CSV/XLSX pentru toate entitățile
+- Componentă UI ImportModal reutilizabilă

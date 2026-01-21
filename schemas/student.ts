@@ -11,6 +11,11 @@ export const disabilityEnum = z.enum(["NONE", "GRAD_1", "GRAD_2"], {
     errorMap: () => ({ message: "Te rog să selectezi gradul de dizabilitate" }),
 })
 
+// Enum pentru stare civilă
+export const maritalStatusEnum = z.enum(["NECASATORIT", "CASATORIT", "DIVORTAT", "VADUV"], {
+    errorMap: () => ({ message: "Te rog să selectezi starea civilă" }),
+})
+
 // Schema principală pentru Student
 export const studentSchema = z.object({
     // Date de bază
@@ -33,7 +38,7 @@ export const studentSchema = z.object({
     ethnicity: z.string().optional(),
     religion: z.string().optional(),
     citizenship: z.string().default("Română"),
-    maritalStatus: z.string().default("Necăsătorit/ă"),
+    maritalStatus: maritalStatusEnum.default("NECASATORIT"),
 
     // Situație socială
     socialSituation: z.string().optional(),
@@ -41,7 +46,10 @@ export const studentSchema = z.object({
     needsSpecialConditions: z.boolean().default(false),
 
     // Familie
-    parentsNames: z.string().optional(),
+    motherFirstname: z.string().optional(), // Prenume mamă
+    motherLastname: z.string().optional(),  // Nume mamă
+    fatherFirstname: z.string().optional(), // Prenume tată
+    fatherLastname: z.string().optional(),  // Nume tată
 
     // Adresă
     residentialAddress: z.string().optional(),
@@ -61,3 +69,4 @@ export const studentIdSchema = z.object({
 export type CreateStudentInput = z.infer<typeof studentSchema>
 export type StudentSex = z.infer<typeof sexEnum>
 export type StudentDisability = z.infer<typeof disabilityEnum>
+export type StudentMaritalStatus = z.infer<typeof maritalStatusEnum>
