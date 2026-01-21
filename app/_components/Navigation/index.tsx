@@ -48,12 +48,12 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
     ]
 
     const profesorNav = [
-        { href: '/profesor/dashboard', label: 'Dashboard' },
+        { href: '/dashboard', label: 'Dashboard' },
         { href: '/orar', label: 'Orar' }
     ]
 
     const studentNav = [
-        { href: '/student/dashboard', label: 'Dashboard' },
+        { href: '/dashboard', label: 'Dashboard' },
         { href: '/orar', label: 'Orar' }
     ]
 

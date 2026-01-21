@@ -8,10 +8,8 @@ export default async function HomePage() {
     if (session?.user) {
         const role = session.user.role;
 
-        if (role === 'PROFESOR') {
-            redirect('/profesor/dashboard');
-        } else if (role === 'STUDENT') {
-            redirect('/student/dashboard');
+        if (role === 'PROFESOR' || role === 'STUDENT') {
+            redirect('/dashboard');
         } else if (role === 'ADMIN' || role === 'SECRETAR') {
             redirect('/utilizatori');
         }
