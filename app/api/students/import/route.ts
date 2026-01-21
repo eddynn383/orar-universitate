@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAdminOrSecretar } from "@/lib/auth-action"
 import prisma from "@/lib/prisma"
 import { parse } from "csv-parse/sync"
-import bcrypt from "bcrypt"
+import * as XLSX from "xlsx"
+import bcrypt from "bcryptjs"
 
 /**
  * API pentru importul studenților din fișier CSV/Excel
@@ -14,14 +15,37 @@ import bcrypt from "bcrypt"
  * Ion,Popescu,ion.popescu@student.ro,STD001,MASCULIN,1234567890123,2000-01-15,București,A1
  */
 
+interface StudentCSVRecord {
+    firstname: string
+    lastname: string
+    email: string
+    publicId: string
+    sex: string
+    cnp?: string
+    birthDate?: string
+    birthPlace?: string
+    groupName?: string
+    citizenship?: string
+    maritalStatus?: string
+    ethnicity?: string
+    religion?: string
+    socialSituation?: string
+    isOrphan?: string
+    needsSpecialConditions?: string
+    parentsNames?: string
+    residentialAddress?: string
+    specialMedicalCondition?: string
+    disability?: string
+}
+
 export async function POST(request: NextRequest) {
     try {
         // Verificăm autorizarea (doar ADMIN și SECRETAR pot importa)
         const authResult = await requireAdminOrSecretar()
-        if (authResult.error) {
+        if (!authResult.success) {
             return NextResponse.json(
                 { error: authResult.error },
-                { status: 401 }
+                { status: authResult.status }
             )
         }
 
@@ -37,22 +61,41 @@ export async function POST(request: NextRequest) {
 
         // Verificăm tipul fișierului
         const fileName = file.name.toLowerCase()
-        if (!fileName.endsWith('.csv') && !fileName.endsWith('.xls') && !fileName.endsWith('.xlsx')) {
+        const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
+        const isCsv = fileName.endsWith('.csv')
+
+        if (!isExcel && !isCsv) {
             return NextResponse.json(
-                { error: "Fișierul trebuie să fie CSV sau Excel (.csv, .xls, .xlsx)" },
+                { error: "Fișierul trebuie să fie CSV sau Excel (.csv, .xlsx, .xls)" },
                 { status: 400 }
             )
         }
 
-        // Citim conținutul fișierului
-        const fileContent = await file.text()
+        let records: StudentCSVRecord[] = []
 
-        // Parsăm CSV-ul
-        const records = parse(fileContent, {
-            columns: true,
-            skip_empty_lines: true,
-            trim: true
-        })
+        if (isExcel) {
+            // Procesăm fișierul Excel
+            const arrayBuffer = await file.arrayBuffer()
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+
+            // Luăm prima foaie de calcul
+            const firstSheetName = workbook.SheetNames[0]
+            const worksheet = workbook.Sheets[firstSheetName]
+
+            // Convertim la JSON (array de obiecte)
+            records = XLSX.utils.sheet_to_json(worksheet, {
+                raw: false, // Convertește datele la string pentru consistență
+                defval: '' // Valoare default pentru celule goale
+            }) as StudentCSVRecord[]
+        } else {
+            // Procesăm fișierul CSV
+            const fileContent = await file.text()
+            records = parse(fileContent, {
+                columns: true,
+                skip_empty_lines: true,
+                trim: true
+            }) as StudentCSVRecord[]
+        }
 
         if (records.length === 0) {
             return NextResponse.json(
@@ -145,6 +188,15 @@ export async function POST(request: NextRequest) {
                     }
                 }
 
+                // Validăm disability enum
+                let disability: 'NONE' | 'GRAD_1' | 'GRAD_2' = 'NONE'
+                if (record.disability) {
+                    const disabilityUpper = record.disability.toUpperCase()
+                    if (disabilityUpper === 'GRAD_1' || disabilityUpper === 'GRAD_2') {
+                        disability = disabilityUpper
+                    }
+                }
+
                 // Creăm utilizatorul
                 await prisma.user.create({
                     data: {
@@ -169,7 +221,7 @@ export async function POST(request: NextRequest) {
                         parentsNames: record.parentsNames || null,
                         residentialAddress: record.residentialAddress || null,
                         specialMedicalCondition: record.specialMedicalCondition || null,
-                        disability: record.disability?.toUpperCase() || 'NONE'
+                        disability
                     }
                 })
 

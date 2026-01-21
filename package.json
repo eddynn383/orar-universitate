@@ -33,6 +33,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^6.1.0",
     "date-fns": "^4.1.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
@@ -48,11 +49,12 @@
     "tailwind-merge": "^3.4.0",
     "uploadthing": "^7.7.4",
     "use-debounce": "^10.0.6",
+    "xlsx": "^0.18.5",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.25",
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",

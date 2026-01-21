@@ -8,10 +8,20 @@
  * 4. Păstrează modelele vechi pentru rollback (se vor șterge manual după verificare)
  */
 
-import { PrismaClient } from '../app/generated/prisma'
-import bcrypt from 'bcrypt'
+import 'dotenv/config'
+import bcrypt from 'bcryptjs'
+import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaPg } from '@prisma/adapter-pg'
 
-const prisma = new PrismaClient()
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL nu este definit în fișierul .env')
+}
+
+const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+})
+
+const prisma = new PrismaClient({ adapter })
 
 async function migrateTeachers() {
     console.log('🔄 Migrare profesori...')

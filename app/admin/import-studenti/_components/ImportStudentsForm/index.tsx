@@ -164,7 +164,7 @@ Andrei,Georgescu,andrei.georgescu@student.ro,STD003,MASCULIN,3456789012345,2000-
 
                         <Button
                             type="submit"
-                            variant="filled"
+                            variant="ghost"
                             size="L"
                             disabled={!file || loading}
                             className="w-full gap-2"
