@@ -76,8 +76,8 @@ Aplicația va rula pe: `http://localhost:3000`
 ### 🧭 Navigație Actualizată & Redirect-uri Automate
 
 **După login, vei fi redirecționat automat către:**
-- 🎓 **PROFESOR** → `/profesor/dashboard`
-- 📚 **STUDENT** → `/student/dashboard`
+- 🎓 **PROFESOR** → `/dashboard` (afișează dashboard profesor)
+- 📚 **STUDENT** → `/dashboard` (afișează dashboard student)
 - 👨‍💼 **ADMIN/SECRETAR** → `/utilizatori`
 - 👤 **Neautentificat** → `/orar`
 
@@ -105,13 +105,13 @@ Aplicația va rula pe: `http://localhost:3000`
 
 **🟢 PROFESOR:**
 ```
-├── Dashboard (NOU!)
+├── Dashboard (NOU! - pagină unificată)
 └── Orar
 ```
 
 **🟡 STUDENT:**
 ```
-├── Dashboard (NOU!)
+├── Dashboard (NOU! - pagină unificată)
 └── Orar
 ```
 
@@ -129,9 +129,9 @@ Aplicația va rula pe: `http://localhost:3000`
 - [ ] Căutare după nume/email/publicId
 - [ ] Afișare informații per rol (titlu profesor, grup student)
 
-### 2️⃣ Testează Dashboard Profesor
+### 2️⃣ Testează Dashboard Unificat (Profesor)
 
-**URL:** `http://localhost:3000/profesor/dashboard`
+**URL:** `http://localhost:3000/dashboard`
 
 **Login ca:** PROFESOR
 
@@ -145,11 +145,11 @@ Aplicația va rula pe: `http://localhost:3000`
 - [ ] Vezi statistici (discipline, studenți, examene, materiale)
 - [ ] Vezi lista disciplinelor cu detalii
 - [ ] Vezi examene viitoare cu badge-uri (astăzi/mâine)
-- [ ] Click pe butoanele de acțiuni rapide
+- [ ] Secțiunea "Acțiuni rapide" afișează butoane disabled (funcționalități în dezvoltare)
 
-### 3️⃣ Testează Dashboard Student
+### 3️⃣ Testează Dashboard Unificat (Student)
 
-**URL:** `http://localhost:3000/student/dashboard`
+**URL:** `http://localhost:3000/dashboard`
 
 **Login ca:** STUDENT
 
