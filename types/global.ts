@@ -1,3 +1,4 @@
+import { fi } from 'date-fns/locale';
 // types/global.ts
 export type UserRole = "ADMIN" | "SECRETAR" | "PROFESOR" | "STUDENT" | "USER"
 
@@ -16,9 +17,10 @@ export type TimeSlot = typeof TIME_SLOTS[number]
 // Audit user type
 export type AuditUser = {
     id: string
-    name: string
-    // email: string | null
-    // image: string | null
+    firstname?: string | null
+    lastname?: string | null
+    email?: string | null
+    image?: string | null
 }
 
 // CalendarEntry - formatul folosit de componenta Calendar
@@ -42,9 +44,9 @@ export interface CalendarEntry {
     groupIds?: string[] // Group IDs for editing (many-to-many)
     studyYearId: string
     // Audit info
-    createdBy?: AuditUser
+    createdBy?: AuditUser | null
     createdAt?: Date | string
-    updatedBy?: AuditUser
+    updatedBy?: AuditUser | null
     updatedAt?: Date | string
 }
 

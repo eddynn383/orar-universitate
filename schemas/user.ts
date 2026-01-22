@@ -12,16 +12,21 @@ export const LoginSchema = z.object({
 })
 
 export const userSchema = z.object({
-    name: z.string().min(1, "Numele este obligatoriu"),
+    firstname: z.string().min(1, "Prenumele este obligatoriu"),
+    lastname: z.string().min(1, "Numele de familie este obligatoriu"),
     email: z.email("Email invalid"),
-    role: z.nativeEnum(UserRole),
+    role: z.enum(UserRole),
     password: z.string().min(6, "Parola trebuie să aibă cel puțin 6 caractere").optional(),
     image: z.string().optional(),
+    sex: z.enum(["MASCULIN", "FEMININ"]).refine(val => val !== undefined, {
+        message: "Te rog să selectezi sexul",
+    }),
 })
 
 export const updateUserSchema = z.object({
     id: z.string().min(1, "ID-ul este obligatoriu"),
-    name: z.string().min(1, "Numele este obligatoriu"),
+    firstname: z.string().min(1, "Prenumele este obligatoriu"),
+    lastname: z.string().min(1, "Numele de familie este obligatoriu"),
     email: z.email("Email invalid"),
     role: z.nativeEnum(UserRole),
     password: z.string().min(6, "Parola trebuie să aibă cel puțin 6 caractere").optional().or(z.literal("")),

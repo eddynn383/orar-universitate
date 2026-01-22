@@ -63,11 +63,13 @@ export async function createAdmin(prevState: any, formData: FormData) {
 
             const newUser = await prisma.user.create({
                 data: {
-                    name: `${validation.data.firstname} ${validation.data.lastname}`,
+                    firstname: validation.data.firstname,
+                    lastname: validation.data.lastname,
                     email: validation.data.email,
                     role: "ADMIN",
                     password: hashedPassword,
                     image: validation.data.image || null,
+                    sex: validation.data.sex || "MASCULIN",
                 },
             })
             userId = newUser.id

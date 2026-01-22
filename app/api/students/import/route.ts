@@ -1,13 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { parseFile, cleanImportData, parseBooleanFields } from "@/lib/import"
+import { auth } from "@/auth"
+import { parseFile, cleanImportData, parseBooleanFields, mapHeadersToKeys } from "@/lib/import"
 import { importStudents } from "@/actions/import"
+
+// Maparea coloanelor pentru import studenți
+const STUDENT_COLUMNS = [
+    { key: "firstname", label: "Prenume" },
+    { key: "lastname", label: "Nume" },
+    { key: "email", label: "Email" },
+    { key: "sex", label: "Sex" },
+    { key: "cnp", label: "CNP" },
+    { key: "birthDate", label: "Data Nașterii" },
+    { key: "birthPlace", label: "Locul Nașterii" },
+    { key: "citizenship", label: "Cetățenie" },
+    { key: "maritalStatus", label: "Stare Civilă" },
+    { key: "motherFirstname", label: "Prenume Mamă" },
+    { key: "motherLastname", label: "Nume Mamă" },
+    { key: "fatherFirstname", label: "Prenume Tată" },
+    { key: "fatherLastname", label: "Nume Tată" },
+    { key: "isOrphan", label: "Orfan?" },
+    { key: "needsSpecialConditions", label: "Nevoi Speciale?" },
+    { key: "disability", label: "Dizabilitate" },
+]
 
 export async function POST(request: NextRequest) {
     try {
         // Verificăm autentificarea
-        const session = await getServerSession(authOptions)
+        const session = await auth()
 
         if (!session?.user?.id) {
             return NextResponse.json(
@@ -16,8 +35,8 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Verificăm dacă utilizatorul are rol de ADMIN
-        if (session.user.role !== "ADMIN") {
+        // Verificăm dacă utilizatorul are rol de ADMIN sau SECRETAR
+        if (session.user.role !== "ADMIN" && session.user.role !== "SECRETAR") {
             return NextResponse.json(
                 { error: "Nu ai permisiunea să imporți studenți" },
                 { status: 403 }
@@ -37,6 +56,9 @@ export async function POST(request: NextRequest) {
 
         // Parsăm fișierul (CSV sau XLSX)
         let data = await parseFile(file)
+
+        // Mapăm headerele de la label la key (ex: "Prenume" -> "firstname")
+        data = mapHeadersToKeys(data, STUDENT_COLUMNS)
 
         // Curățăm datele
         data = cleanImportData(data)

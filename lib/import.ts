@@ -16,17 +16,20 @@ export interface ImportResult {
 
 /**
  * Parsează un fișier CSV și returnează datele ca array de obiecte
+ * Funcționează atât pe client cât și pe server
  */
-export function parseCSV(file: File): Promise<any[]> {
+export async function parseCSV(file: File): Promise<any[]> {
+    const text = await file.text()
+
     return new Promise((resolve, reject) => {
-        Papa.parse(file, {
+        Papa.parse(text, {
             header: true,
             skipEmptyLines: true,
             transformHeader: (header) => header.trim(),
             complete: (results) => {
                 resolve(results.data as any[])
             },
-            error: (error) => {
+            error: (error: Error) => {
                 reject(new Error(`Eroare la parsarea CSV: ${error.message}`))
             }
         })
@@ -35,43 +38,29 @@ export function parseCSV(file: File): Promise<any[]> {
 
 /**
  * Parsează un fișier Excel (XLSX) și returnează datele ca array de obiecte
+ * Funcționează atât pe client cât și pe server
  */
 export async function parseExcel(file: File): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
+    try {
+        const arrayBuffer = await file.arrayBuffer()
+        const data = new Uint8Array(arrayBuffer)
 
-        reader.onload = (e) => {
-            try {
-                const data = e.target?.result
-                if (!data) {
-                    reject(new Error('Fișierul este gol'))
-                    return
-                }
+        const workbook = XLSX.read(data, { type: 'array' })
 
-                const workbook = XLSX.read(data, { type: 'binary' })
+        // Citește prima foaie de calcul
+        const firstSheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheetName]
 
-                // Citește prima foaie de calcul
-                const firstSheetName = workbook.SheetNames[0]
-                const worksheet = workbook.Sheets[firstSheetName]
+        // Convertește în JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            raw: false, // Păstrează datele ca string
+            defval: '', // Valoare default pentru celule goale
+        })
 
-                // Convertește în JSON
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                    raw: false, // Păstrează datele ca string
-                    defval: '', // Valoare default pentru celule goale
-                })
-
-                resolve(jsonData as any[])
-            } catch (error) {
-                reject(new Error(`Eroare la parsarea Excel: ${error instanceof Error ? error.message : 'Unknown error'}`))
-            }
-        }
-
-        reader.onerror = () => {
-            reject(new Error('Eroare la citirea fișierului'))
-        }
-
-        reader.readAsBinaryString(file)
-    })
+        return jsonData as any[]
+    } catch (error) {
+        throw new Error(`Eroare la parsarea Excel: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
 }
 
 /**
@@ -104,6 +93,34 @@ export function validateColumns(data: any[], requiredColumns: string[]): { valid
         valid: missing.length === 0,
         missing
     }
+}
+
+/**
+ * Mapează headerele din label la key
+ * Ex: "Prenume" -> "firstname"
+ */
+export function mapHeadersToKeys(
+    data: any[],
+    columnMapping: Array<{ key: string; label: string }>
+): any[] {
+    // Creăm un map de la label la key
+    const labelToKey: Record<string, string> = {}
+    columnMapping.forEach(col => {
+        labelToKey[col.label.toLowerCase()] = col.key
+    })
+
+    return data.map(row => {
+        const mapped: any = {}
+
+        for (const [header, value] of Object.entries(row)) {
+            const normalizedHeader = header.trim().toLowerCase()
+            // Verificăm dacă headerul este un label și îl mapăm la key
+            const key = labelToKey[normalizedHeader] || header.trim()
+            mapped[key] = value
+        }
+
+        return mapped
+    })
 }
 
 /**

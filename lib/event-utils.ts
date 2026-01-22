@@ -1,14 +1,6 @@
 // lib/event-utils.ts
 
-import { CalendarEntry, PRISMA_DAYS, TIME_SLOTS } from "@/types/global"
-
-// Type pentru audit user
-type AuditUser = {
-    id: string
-    name: string | null
-    email: string | null
-    image: string | null
-} | null
+import { AuditUser, CalendarEntry, PRISMA_DAYS, TIME_SLOTS } from "@/types/global"
 
 // Type pentru event-ul cu relații din Prisma (many-to-many cu groups)
 type EventWithRelations = {
@@ -27,8 +19,10 @@ type EventWithRelations = {
     studyYearId?: string
     teacher: {
         id: string
-        firstname: string
-        lastname: string
+        user: {
+            firstname: string
+            lastname: string
+        } | null
         grade: string | null
     } | null
     discipline: {
@@ -52,9 +46,9 @@ type EventWithRelations = {
         groupId?: string
     }>
     // Audit fields
-    createdBy?: AuditUser
+    createdBy: AuditUser | null
     createdById?: string | null
-    updatedBy?: AuditUser
+    updatedBy: AuditUser | null
     updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -69,8 +63,8 @@ export function transformEventToCalendarEntry(event: EventWithRelations): Calend
     const duration = endHourNum - startHourNum
 
     // Build teacher name safely
-    const teacherName = event.teacher
-        ? `${event.teacher.grade || ''} ${event.teacher.firstname} ${event.teacher.lastname}`.trim()
+    const teacherName = event.teacher && event.teacher.user
+        ? `${event.teacher.grade || ''} ${event.teacher.user.firstname} ${event.teacher.user.lastname}`.trim()
         : ''
 
     // Build room name safely
@@ -122,9 +116,9 @@ export function transformEventToCalendarEntry(event: EventWithRelations): Calend
         studyYearId: "",
         groupIds,
         // Audit info
-        createdBy: event.createdBy || null,
+        createdBy: event.createdBy,
         createdAt: event.createdAt,
-        updatedBy: event.updatedBy || null,
+        updatedBy: event.updatedBy,
         updatedAt: event.updatedAt,
     }
 }

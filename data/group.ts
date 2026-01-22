@@ -22,10 +22,10 @@ export async function getGroupById(id: string) {
             studyYear: true,
             learningType: true,
             createdBy: {
-                select: { id: true, name: true, email: true, image: true }
+                select: { id: true, firstname: true, lastname: true, email: true, image: true }
             },
             updatedBy: {
-                select: { id: true, name: true, email: true, image: true }
+                select: { id: true, firstname: true, lastname: true, email: true, image: true }
             }
         }
     })

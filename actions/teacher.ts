@@ -5,6 +5,7 @@ import { teacherIdSchema, teacherSchema } from "@/schemas/teacher"
 import { revalidatePath } from "next/cache"
 import z from "zod"
 import bcrypt from "bcryptjs"
+import { roles } from "@/lib/roles"
 
 export async function createTeacher(prevState: any, formData: FormData) {
     const data = Object.fromEntries(formData)
@@ -29,7 +30,7 @@ export async function createTeacher(prevState: any, formData: FormData) {
 
         if (existingUser) {
             // Dacă există User, verificăm dacă are deja profil de profesor
-            if (existingUser.role === "PROFESOR") {
+            if (existingUser.role === roles[2]) {
                 const existingTeacher = await prisma.teacher.findUnique({
                     where: { userId: existingUser.id }
                 })
@@ -56,11 +57,13 @@ export async function createTeacher(prevState: any, formData: FormData) {
 
             const newUser = await prisma.user.create({
                 data: {
-                    name: `${validation.data.firstname} ${validation.data.lastname}`,
+                    firstname: validation.data.firstname,
+                    lastname: validation.data.lastname,
                     email: validation.data.email,
                     role: "PROFESOR",
                     password: hashedPassword,
                     image: validation.data.image || null,
+                    sex: validation.data.sex
                 }
             })
             userId = newUser.id

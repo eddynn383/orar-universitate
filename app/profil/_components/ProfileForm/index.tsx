@@ -17,7 +17,8 @@ import { Badge } from "@/components/Badge"
 type ProfileFormProps = {
     user: {
         id: string
-        name: string | null
+        firstname: string
+        lastname: string
         email: string | null
         image: string | null
         phone: string | null
@@ -118,13 +119,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                             {imageUrl ? (
                                                 <Image
                                                     src={imageUrl}
-                                                    alt={user.name || "Profile"}
+                                                    alt={`${user.firstname} ${user.lastname}`}
                                                     fill
                                                     className="object-cover"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-4xl font-medium text-primary-500">
-                                                    {user.name?.charAt(0) || user.email?.charAt(0) || "?"}
+                                                    {user.firstname.charAt(0)}{user.lastname.charAt(0)}
                                                 </div>
                                             )}
                                         </div>
@@ -142,37 +143,52 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                     </div>
                                 </div>
 
-                                {/* Name and Email Row */}
+                                {/* Name fields */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <Field data-invalid={profileErrors?.name ? true : undefined}>
+                                    <Field data-invalid={profileErrors?.firstname ? true : undefined}>
                                         <FieldLabel className="flex items-center gap-2">
                                             <User className="w-4 h-4" />
-                                            Nume complet
+                                            Prenume
                                         </FieldLabel>
                                         <Input
-                                            name="name"
-                                            defaultValue={user.name || ""}
-                                            placeholder="Ion Popescu"
+                                            name="firstname"
+                                            defaultValue={user.firstname}
+                                            placeholder="Ion"
                                             sizes="L"
                                         />
-                                        <FieldError>{profileErrors?.name?.errors?.[0]}</FieldError>
+                                        <FieldError>{profileErrors?.firstname?.errors?.[0]}</FieldError>
                                     </Field>
 
-                                    <Field data-invalid={profileErrors?.email ? true : undefined}>
+                                    <Field data-invalid={profileErrors?.lastname ? true : undefined}>
                                         <FieldLabel className="flex items-center gap-2">
-                                            <Mail className="w-4 h-4" />
-                                            Email
+                                            <User className="w-4 h-4" />
+                                            Nume
                                         </FieldLabel>
                                         <Input
-                                            name="email"
-                                            type="email"
-                                            defaultValue={user.email || ""}
-                                            placeholder="ion.popescu@example.com"
+                                            name="lastname"
+                                            defaultValue={user.lastname}
+                                            placeholder="Popescu"
                                             sizes="L"
                                         />
-                                        <FieldError>{profileErrors?.email?.errors?.[0]}</FieldError>
+                                        <FieldError>{profileErrors?.lastname?.errors?.[0]}</FieldError>
                                     </Field>
                                 </div>
+
+                                {/* Email field */}
+                                <Field data-invalid={profileErrors?.email ? true : undefined}>
+                                    <FieldLabel className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4" />
+                                        Email
+                                    </FieldLabel>
+                                    <Input
+                                        name="email"
+                                        type="email"
+                                        defaultValue={user.email || ""}
+                                        placeholder="ion.popescu@example.com"
+                                        sizes="L"
+                                    />
+                                    <FieldError>{profileErrors?.email?.errors?.[0]}</FieldError>
+                                </Field>
 
                                 {/* Phone */}
                                 <Field data-invalid={profileErrors?.phone ? true : undefined}>

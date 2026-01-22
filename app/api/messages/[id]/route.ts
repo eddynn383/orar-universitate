@@ -99,7 +99,8 @@ export async function PATCH(
                 sender: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true,
                         image: true,
                         role: true
@@ -111,7 +112,8 @@ export async function PATCH(
                         user: {
                             select: {
                                 id: true,
-                                name: true,
+                                firstname: true,
+                        lastname: true,
                                 image: true
                             }
                         }

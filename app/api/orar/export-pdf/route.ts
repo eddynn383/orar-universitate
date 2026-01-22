@@ -125,9 +125,13 @@ export async function GET(request: NextRequest) {
             include: {
                 teacher: {
                     select: {
-                        firstname: true,
-                        lastname: true,
-                        grade: true
+                        grade: true,
+                        user: {
+                            select: {
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
                     }
                 },
                 discipline: {
@@ -180,7 +184,7 @@ export async function GET(request: NextRequest) {
             oraSfarsit: event.endHour,
             tipActivitate: event.eventType,
             frecventa: event.eventRecurrence,
-            profesor: `${event.teacher.grade || ''} ${event.teacher.firstname} ${event.teacher.lastname}`.trim(),
+            profesor: `${event.teacher.grade || ''} ${event.teacher.user?.firstname} ${event.teacher.user?.lastname}`.trim(),
             disciplina: event.discipline.name,
             sala: event.classroom.building ? `${event.classroom.name} (${event.classroom.building})` : event.classroom.name,
             grupe: event.groups.map(g => g.group.name).join(", ")

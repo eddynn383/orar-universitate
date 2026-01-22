@@ -40,13 +40,13 @@ export async function importStudents(
             const validation = studentSchema.safeParse(processedData)
 
             if (!validation.success) {
-                const firstError = validation.error.errors[0]
+                const firstError = validation.error.issues[0]
                 result.failed++
                 result.errors.push({
                     row: rowNumber,
                     email: row.email,
                     message: `${firstError.path.join('.')}: ${firstError.message}`,
-                    details: validation.error.errors
+                    details: validation.error.issues
                 })
                 continue
             }
@@ -92,8 +92,10 @@ export async function importStudents(
 
                 userRecord = await prisma.user.create({
                     data: {
-                        name: `${validation.data.firstname} ${validation.data.lastname}`,
+                        firstname: validation.data.firstname,
+                        lastname: validation.data.lastname,
                         email: validation.data.email,
+                        sex: validation.data.sex,
                         role: "STUDENT",
                         password: hashedPassword,
                         image: validation.data.image || null,
@@ -118,15 +120,38 @@ export async function importStudents(
                 })
             }
 
-            // Creăm studentul
-            const { cnp, ...restData } = validation.data
+            // Creăm studentul - excludem câmpurile care aparțin User-ului
+            const {
+                cnp,
+                firstname,
+                lastname,
+                sex,
+                image,
+                birthPlace, // mapăm la birthCity
+                ...studentData
+            } = validation.data
 
             await prisma.student.create({
                 data: {
-                    ...restData,
+                    email: studentData.email,
                     cnpEncrypted,
                     publicId,
-                    birthDate: new Date(validation.data.birthDate),
+                    birthDate: new Date(studentData.birthDate),
+                    birthCity: birthPlace, // schema folosește birthCity
+                    citizenship: studentData.citizenship,
+                    maritalStatus: studentData.maritalStatus,
+                    motherFirstname: studentData.motherFirstname,
+                    motherLastname: studentData.motherLastname,
+                    fatherFirstname: studentData.fatherFirstname,
+                    fatherLastname: studentData.fatherLastname,
+                    isOrphan: studentData.isOrphan,
+                    needsSpecialConditions: studentData.needsSpecialConditions,
+                    disability: studentData.disability,
+                    ethnicity: studentData.ethnicity,
+                    religion: studentData.religion,
+                    socialSituation: studentData.socialSituation,
+                    specialMedicalCondition: studentData.specialMedicalCondition,
+                    groupId: studentData.groupId,
                     userId: userIdToUse,
                     createdById: userId,
                     updatedById: userId,
@@ -174,13 +199,13 @@ export async function importTeachers(
             const validation = teacherSchema.safeParse(row)
 
             if (!validation.success) {
-                const firstError = validation.error.errors[0]
+                const firstError = validation.error.issues[0]
                 result.failed++
                 result.errors.push({
                     row: rowNumber,
                     email: row.email,
                     message: `${firstError.path.join('.')}: ${firstError.message}`,
-                    details: validation.error.errors
+                    details: validation.error.issues
                 })
                 continue
             }
@@ -226,11 +251,13 @@ export async function importTeachers(
 
                 userRecord = await prisma.user.create({
                     data: {
-                        name: `${validation.data.firstname} ${validation.data.lastname}`,
+                        firstname: validation.data.firstname,
+                        lastname: validation.data.lastname,
                         email: validation.data.email,
                         role: "PROFESOR",
                         password: hashedPassword,
                         image: validation.data.image || null,
+                        sex: validation.data.sex,
                     }
                 })
                 userIdToUse = userRecord.id
@@ -287,13 +314,13 @@ export async function importSecretaries(
             const validation = secretarySchema.safeParse(row)
 
             if (!validation.success) {
-                const firstError = validation.error.errors[0]
+                const firstError = validation.error.issues[0]
                 result.failed++
                 result.errors.push({
                     row: rowNumber,
                     email: row.email,
                     message: `${firstError.path.join('.')}: ${firstError.message}`,
-                    details: validation.error.errors
+                    details: validation.error.issues
                 })
                 continue
             }
@@ -339,11 +366,13 @@ export async function importSecretaries(
 
                 userRecord = await prisma.user.create({
                     data: {
-                        name: `${validation.data.firstname} ${validation.data.lastname}`,
+                        firstname: validation.data.firstname,
+                        lastname: validation.data.lastname,
                         email: validation.data.email,
                         role: "SECRETAR",
                         password: hashedPassword,
                         image: validation.data.image || null,
+                        sex: validation.data.sex,
                     }
                 })
                 userIdToUse = userRecord.id
@@ -406,13 +435,13 @@ export async function importAdmins(
             const validation = adminSchema.safeParse(processedData)
 
             if (!validation.success) {
-                const firstError = validation.error.errors[0]
+                const firstError = validation.error.issues[0]
                 result.failed++
                 result.errors.push({
                     row: rowNumber,
                     email: row.email,
                     message: `${firstError.path.join('.')}: ${firstError.message}`,
-                    details: validation.error.errors
+                    details: validation.error.issues
                 })
                 continue
             }
@@ -458,11 +487,13 @@ export async function importAdmins(
 
                 userRecord = await prisma.user.create({
                     data: {
-                        name: `${validation.data.firstname} ${validation.data.lastname}`,
+                        firstname: validation.data.firstname,
+                        lastname: validation.data.lastname,
                         email: validation.data.email,
                         role: "ADMIN",
                         password: hashedPassword,
                         image: validation.data.image || null,
+                        sex: validation.data.sex || "MASCULIN",
                     }
                 })
                 userIdToUse = userRecord.id

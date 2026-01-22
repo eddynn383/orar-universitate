@@ -6,8 +6,9 @@ import { CreateEventModal } from "../CreateEventModal"
 import { DeleteEventDialog } from "../DeleteEventDialog"
 import { CalendarFilters } from "../CalendarFilters"
 import { CalendarEntry } from "@/types/global"
-import { Classroom, Discipline, Group, Teacher } from "@/app/generated/prisma/client"
+import { Classroom, Discipline, Group } from "@/app/generated/prisma/client"
 import { moveEvent, deleteEvent } from "@/actions/event"
+import { Teacher } from "@/types/entities"
 
 type CalendarManagerProps = {
     initialEntries: CalendarEntry[]

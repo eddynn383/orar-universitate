@@ -31,7 +31,7 @@ export default {
                 return {
                     id: user.id,
                     email: user.email,
-                    name: user.name,
+                    name: `${user.firstname} ${user.lastname}`,
                     role: user.role,
                     image: user.image,
                 }

@@ -7,28 +7,25 @@ import { TeacherForm } from "../TeacherForm"
 import { Button } from "@/components/Button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/Dropdown"
 import { DeleteTeacherForm } from "../DeleteTeacherForm"
-import { AuditUser } from "@/types/global"
-import { User } from "@/types/entities"
 
 type TeacherActionsProps = {
     defaultValues?: {
         id?: string
         title?: string
         grade?: string
-        firstname: string
-        lastname: string
         email: string
         phone?: string
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string | undefined
+        updatedBy?: string | undefined
     },
     user: {
         id: string
         role: string
         email?: string
-        name?: string
+        firstname?: string
+        lastname?: string
     },
 }
 

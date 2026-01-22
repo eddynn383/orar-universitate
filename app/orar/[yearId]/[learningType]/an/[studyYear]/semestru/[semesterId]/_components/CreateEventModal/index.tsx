@@ -2,7 +2,8 @@
 
 import { Dialog, DialogContent } from "@/components/Dialog"
 import { EventForm } from "../EventForm"
-import { Classroom, Discipline, Group, Teacher } from "@/app/generated/prisma/client"
+import { Classroom, Discipline, Group } from "@/app/generated/prisma/client"
+import { Teacher } from "@/types/entities"
 
 type CreateEventModalProps = {
     open: boolean

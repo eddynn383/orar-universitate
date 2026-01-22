@@ -56,11 +56,13 @@ export async function createSecretary(prevState: any, formData: FormData) {
 
             const newUser = await prisma.user.create({
                 data: {
-                    name: `${validation.data.firstname} ${validation.data.lastname}`,
+                    firstname: validation.data.firstname,
+                    lastname: validation.data.lastname,
                     email: validation.data.email,
                     role: "SECRETAR",
                     password: hashedPassword,
                     image: validation.data.image || null,
+                    sex: validation.data.sex
                 },
             })
             userId = newUser.id

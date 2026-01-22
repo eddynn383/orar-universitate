@@ -33,8 +33,8 @@ type GroupFormProps = {
         group?: number
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string
+        updatedBy?: string
     }
     learningTypes: LearningTypeWithStudyYears[]
     onSuccess?: () => void
@@ -117,7 +117,7 @@ export function GroupForm({ defaultValues, learningTypes, onSuccess }: GroupForm
                                         htmlFor={`learning-type-${learningType.id}`}
                                         className={`flex-1 flex items-center gap-3 p-4 border-1 rounded-lg cursor-pointer transition-all ${selectedLearningType === learningType.id
                                             ? 'border-brand-400 bg-brand-400/10'
-                                            : 'border-primary-400 hover:border-primary-500'
+                                            : 'border-primary-300 hover:border-primary-400'
                                             }`}
                                         style={{ width: `${100 / learningTypes.length}%` }}
                                     >
@@ -143,7 +143,7 @@ export function GroupForm({ defaultValues, learningTypes, onSuccess }: GroupForm
                                             htmlFor={`study-year-${studyYear.id}`}
                                             className={`flex-1 flex items-center gap-3 p-4 border-1 rounded-lg cursor-pointer transition-all ${selectedStudyYear === studyYear.id
                                                 ? 'border-brand-400 bg-brand-400/10'
-                                                : 'border-primary-400 hover:border-primary-500'
+                                                : 'border-primary-300 hover:border-primary-400'
                                                 }`}
                                             style={{ width: `${100 / currentStudyYears.length}%` }}
                                         >
@@ -173,7 +173,7 @@ export function GroupForm({ defaultValues, learningTypes, onSuccess }: GroupForm
                                         htmlFor={`semester-${semester.value}`}
                                         className={`flex-1 flex items-center gap-3 p-4 border-1 rounded-lg cursor-pointer transition-all ${selectedSemester === `${semester.value}`
                                             ? 'border-brand-400 bg-brand-400/10'
-                                            : 'border-primary-400 hover:border-primary-500'
+                                            : 'border-primary-300 hover:border-primary-400'
                                             }`}
                                         style={{ width: `${100 / SEMESTERS.length}%` }}
                                     >

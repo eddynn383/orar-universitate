@@ -3,7 +3,18 @@ import prisma from "@/lib/prisma"
 export async function getAllDisciplines() {
     return prisma.discipline.findMany({
         include: {
-            teacher: true,
+            teacher: {
+                include: {
+                    user: {
+                        select: {
+                            firstname: true,
+                            lastname: true,
+                            image: true,
+                            phone: true
+                        }
+                    }
+                }
+            },
             studyYear: true,
             learningType: true
         },
@@ -19,14 +30,25 @@ export async function getDisciplineById(id: string) {
     return prisma.discipline.findUnique({
         where: { id },
         include: {
-            teacher: true,
+            teacher: {
+                include: {
+                    user: {
+                        select: {
+                            firstname: true,
+                            lastname: true,
+                            image: true,
+                            phone: true
+                        }
+                    }
+                }
+            },
             studyYear: true,
             learningType: true,
             createdBy: {
-                select: { id: true, name: true, email: true, image: true }
+                select: { id: true, firstname: true, lastname: true, email: true, image: true }
             },
             updatedBy: {
-                select: { id: true, name: true, email: true, image: true }
+                select: { id: true, firstname: true, lastname: true, email: true, image: true }
             }
         }
     })
@@ -39,7 +61,18 @@ export async function getDisciplinesByLearningType(learningTypeId: string) {
             learningTypeId
         },
         include: {
-            teacher: true,
+            teacher: {
+                include: {
+                    user: {
+                        select: {
+                            firstname: true,
+                            lastname: true,
+                            image: true,
+                            phone: true
+                        }
+                    }
+                }
+            },
             studyYear: true
         },
         orderBy: [
@@ -57,7 +90,18 @@ export async function getDisciplinesByLearningTypeAndSemester(learningTypeId: st
             semester
         },
         include: {
-            teacher: true,
+            teacher: {
+                include: {
+                    user: {
+                        select: {
+                            firstname: true,
+                            lastname: true,
+                            image: true,
+                            phone: true
+                        }
+                    }
+                }
+            },
             studyYear: true
         },
         orderBy: [
@@ -106,7 +150,18 @@ export async function getDisciplinesByStudyYearAndSemester(studyYearId: string, 
             semester
         },
         include: {
-            teacher: true,
+            teacher: {
+                include: {
+                    user: {
+                        select: {
+                            firstname: true,
+                            lastname: true,
+                            image: true,
+                            phone: true
+                        }
+                    }
+                }
+            },
             studyYear: true
         },
         orderBy: {

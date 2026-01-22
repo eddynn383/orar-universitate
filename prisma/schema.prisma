@@ -47,18 +47,19 @@ model Session {
 
 model User {
     id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
+    firstname     String
+    lastname      String
+    email         String    @unique
     emailVerified DateTime? @map("email_verified")
     password      String
     role          UserRole  @default(USER)
     image         String?
-
-    phone   String?
-    address String?
-    city    String?
-    country String?
-    bio     String? @db.Text
+    sex           Sex
+    phone         String?
+    address       String?
+    city          String?
+    country       String?
+    bio           String?   @db.Text
 
     accounts      Account[]
     sessions      Session[]
@@ -88,17 +89,149 @@ model User {
     updatedGroups      Group[]      @relation("GroupUpdatedBy")
     createdClassrooms  Classroom[]  @relation("ClassroomCreatedBy")
     updatedClassrooms  Classroom[]  @relation("ClassroomUpdatedBy")
-    createdStudents     Student[]    @relation("StudentCreatedBy")
-    updatedStudents     Student[]    @relation("StudentUpdatedBy")
-    createdSecretaries  Secretary[]  @relation("SecretaryCreatedBy")
-    updatedSecretaries  Secretary[]  @relation("SecretaryUpdatedBy")
-    createdAdmins       Admin[]      @relation("AdminCreatedBy")
-    updatedAdmins       Admin[]      @relation("AdminUpdatedBy")
+    createdStudents    Student[]    @relation("StudentCreatedBy")
+    updatedStudents    Student[]    @relation("StudentUpdatedBy")
+    createdSecretaries Secretary[]  @relation("SecretaryCreatedBy")
+    updatedSecretaries Secretary[]  @relation("SecretaryUpdatedBy")
+    createdAdmins      Admin[]      @relation("AdminCreatedBy")
+    updatedAdmins      Admin[]      @relation("AdminUpdatedBy")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@map("users")
+}
+
+model Admin {
+    id    String @id @default(cuid())
+    email String @unique
+
+    // Informații specifice administratorului
+    department       String? // Departament (e.g., "IT", "Resurse Umane", "Academic", "Financiar")
+    adminRole        String? // Rol specific (e.g., "Administrator IT", "Administrator Academic", "Administrator Sistem", "Administrator Baze de Date")
+    officePhone      String? // Telefon birou
+    responsibilities String? @db.Text // Responsabilități principale (e.g., "Administrare servere, Backup baze de date, Suport tehnic utilizatori")
+    accessLevel      Int     @default(1) // Nivel de acces (1-5, unde 5 = acces complet la toate sistemele)
+
+    // Legătura cu User
+    user   User?   @relation("UserAsAdmin", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    createdBy   User?   @relation("AdminCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("AdminUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("admins")
+}
+
+model Secretary {
+    id    String @id @default(cuid())
+    email String @unique
+
+    // Informații specifice secretarului/secretarei
+    department       String? // Departament (e.g., "Secretariat Studenți", "Secretariat Didactic", "Secretariat Facultate")
+    office           String? // Biroul/camera (e.g., "A101", "Corp C, et. 2", "Sala Secretariat")
+    officePhone      String? // Telefon birou
+    workSchedule     String? // Program de lucru (e.g., "Luni-Vineri: 08:00-16:00", "L-J: 8-16, V: 8-14")
+    responsibilities String? @db.Text // Responsabilități/sarcini (e.g., "Gestionare documente studenți, Eliberare adeverințe, Programare examene")
+
+    // Legătura cu User
+    user   User?   @relation("UserAsSecretary", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    createdBy   User?   @relation("SecretaryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("SecretaryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("secretaries")
+}
+
+model Teacher {
+    id    String @id @default(cuid())
+    email String @unique
+
+    // Informații academice
+    title     String? // Titlu academic (e.g., "Dr.", "Prof. Dr.", "Conf. Dr.")
+    grade     String? // Grad didactic (e.g., "Profesor Universitar", "Conferențiar", "Lector")
+    education String? @db.Text // Studii complete (e.g., "Doctorat în Informatică - Universitatea București, 2015\nMaster în AI - ...")
+
+    events      Event[]
+    disciplines Discipline[]
+
+    // Legătura cu User
+    user   User?   @relation("UserAsTeacher", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    createdBy   User?   @relation("TeacherCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("TeacherUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("teachers")
+}
+
+model Student {
+    id    String @id @default(cuid())
+    email String @unique
+
+    // Cod de identificare public (pentru GDPR - afișare note publice)
+    publicId String @unique
+
+    // Date personale
+    cnpEncrypted    String // CNP criptat pentru securitate
+    birthDate       DateTime
+    birthCity       String?
+    birthAddress    String?
+    birthCountry    String?
+    ethnicity       String?
+    religion        String?
+    citizenship     String        @default("Română")
+    maritalStatus   MaritalStatus @default(NECASATORIT)
+    // Familie
+    motherFirstname String? // Prenume mamă
+    motherLastname  String? // Nume mamă
+    fatherFirstname String? // Prenume tată
+    fatherLastname  String? // Nume tată
+
+    // Situație socială
+    socialSituation         String?
+    isOrphan                Boolean    @default(false)
+    needsSpecialConditions  Boolean    @default(false)
+    // Informații medicale
+    specialMedicalCondition String?
+    disability              Disability @default(NONE)
+
+    // Legătura cu User
+    user   User?   @relation("UserAsStudent", fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @unique
+
+    // Relații
+    groupId String?
+    group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+    grades            Grade[]
+    studentDiscipline StudentDiscipline[]
+
+    createdBy   User?   @relation("StudentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+    createdById String?
+    updatedBy   User?   @relation("StudentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+    updatedById String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("students")
 }
 
 model VerificationToken {
@@ -108,22 +241,6 @@ model VerificationToken {
 
     @@unique([identifier, token])
     @@map("verification_tokens")
-}
-
-enum UserRole {
-    ADMIN
-    SECRETAR
-    PROFESOR
-    STUDENT
-    USER
-}
-
-enum EventStatus {
-    DRAFT
-    PENDING_APPROVAL
-    APPROVED
-    PUBLISHED
-    REJECTED
 }
 
 model AcademicYear {
@@ -162,38 +279,6 @@ model StudyYear {
 
     @@unique([learningTypeId, year])
     @@map("study_years")
-}
-
-model Teacher {
-    id          String       @id @default(cuid())
-    firstname   String
-    lastname    String
-    image       String?
-    email       String
-    phone       String?
-
-    // Informații academice
-    title     String? // Titlu academic (e.g., "Dr.", "Prof. Dr.", "Conf. Dr.")
-    grade     String? // Grad didactic (e.g., "Profesor Universitar", "Conferențiar", "Lector")
-    education String? @db.Text // Studii complete (e.g., "Doctorat în Informatică - Universitatea București, 2015\nMaster în AI - ...")
-
-    events      Event[]
-    disciplines Discipline[]
-
-    // Legătura cu User
-    user   User?   @relation("UserAsTeacher", fields: [userId], references: [id], onDelete: Cascade)
-    userId String? @unique
-
-    createdBy   User?   @relation("TeacherCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-    createdById String?
-    updatedBy   User?   @relation("TeacherUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-    updatedById String?
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@unique([email, phone])
-    @@map("teachers")
 }
 
 model Classroom {
@@ -328,126 +413,6 @@ model EventGroup {
     @@map("event_groups")
 }
 
-model Student {
-    id        String  @id @default(cuid())
-    firstname String
-    lastname  String
-    image     String?
-    email     String  @unique
-
-    // Cod de identificare public (pentru GDPR - afișare note publice)
-    publicId String @unique
-
-    // Date personale
-    sex           Sex
-    cnpEncrypted  String // CNP criptat pentru securitate
-    birthDate     DateTime
-    birthPlace    String
-    ethnicity     String?
-    religion      String?
-    citizenship   String        @default("Română")
-    maritalStatus MaritalStatus @default(NECASATORIT)
-
-    // Situație socială
-    socialSituation        String?
-    isOrphan               Boolean @default(false)
-    needsSpecialConditions Boolean @default(false)
-
-    // Familie
-    motherFirstname String? // Prenume mamă
-    motherLastname  String? // Nume mamă
-    fatherFirstname String? // Prenume tată
-    fatherLastname  String? // Nume tată
-
-    // Adresă
-    residentialAddress String?
-
-    // Informații medicale
-    specialMedicalCondition String?
-    disability              Disability @default(NONE)
-
-    // Legătura cu User
-    user   User?   @relation("UserAsStudent", fields: [userId], references: [id], onDelete: Cascade)
-    userId String? @unique
-
-    // Relații
-    groupId String?
-    group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
-    grades            Grade[]
-    studentDiscipline StudentDiscipline[]
-
-    createdBy   User?   @relation("StudentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-    createdById String?
-    updatedBy   User?   @relation("StudentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-    updatedById String?
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@map("students")
-}
-
-model Secretary {
-    id        String  @id @default(cuid())
-    firstname String
-    lastname  String
-    image     String?
-    email     String  @unique
-    phone     String?
-
-    // Informații specifice secretarului/secretarei
-    department       String? // Departament (e.g., "Secretariat Studenți", "Secretariat Didactic", "Secretariat Facultate")
-    office           String? // Biroul/camera (e.g., "A101", "Corp C, et. 2", "Sala Secretariat")
-    officePhone      String? // Telefon birou
-    workSchedule     String? // Program de lucru (e.g., "Luni-Vineri: 08:00-16:00", "L-J: 8-16, V: 8-14")
-    responsibilities String? @db.Text // Responsabilități/sarcini (e.g., "Gestionare documente studenți, Eliberare adeverințe, Programare examene")
-
-    // Legătura cu User
-    user   User?   @relation("UserAsSecretary", fields: [userId], references: [id], onDelete: Cascade)
-    userId String? @unique
-
-    createdBy   User?   @relation("SecretaryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-    createdById String?
-    updatedBy   User?   @relation("SecretaryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-    updatedById String?
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@map("secretaries")
-}
-
-model Admin {
-    id        String  @id @default(cuid())
-    firstname String
-    lastname  String
-    image     String?
-    email     String  @unique
-    phone     String?
-
-    // Informații specifice administratorului
-    department       String? // Departament (e.g., "IT", "Resurse Umane", "Academic", "Financiar")
-    adminRole        String? // Rol specific (e.g., "Administrator IT", "Administrator Academic", "Administrator Sistem", "Administrator Baze de Date")
-    officePhone      String? // Telefon birou
-    responsibilities String? @db.Text // Responsabilități principale (e.g., "Administrare servere, Backup baze de date, Suport tehnic utilizatori")
-    accessLevel      Int     @default(1) // Nivel de acces (1-5, unde 5 = acces complet la toate sistemele)
-
-    // Legătura cu User
-    user   User?   @relation("UserAsAdmin", fields: [userId], references: [id], onDelete: Cascade)
-    userId String? @unique
-
-    createdBy   User?   @relation("AdminCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-    createdById String?
-    updatedBy   User?   @relation("AdminUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-    updatedById String?
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@map("admins")
-}
-
 model StudentDiscipline {
     student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
     studentId    String
@@ -498,59 +463,6 @@ model Notification {
 
     @@index([userId, read])
     @@map("notifications")
-}
-
-enum Day {
-    LUNI
-    MARTI
-    MIERCURI
-    JOI
-    VINERI
-    SAMBATA
-    DUMINICA
-}
-
-enum LearningTypes {
-    CURS
-    SEMINAR
-    LABORATOR
-    PRACTICA
-}
-
-enum Sex {
-    MASCULIN
-    FEMININ
-}
-
-enum Disability {
-    NONE
-    GRAD_1
-    GRAD_2
-}
-
-enum MaritalStatus {
-    NECASATORIT // Necăsătorit/ă
-    CASATORIT   // Căsătorit/ă
-    DIVORTAT    // Divorțat/ă
-    VADUV       // Văduv/ă
-}
-
-enum ConversationType {
-    DIRECT
-    GROUP
-}
-
-enum MessageType {
-    TEXT
-    IMAGE
-    FILE
-    VOICE
-}
-
-enum AttachmentType {
-    IMAGE
-    FILE
-    VOICE
 }
 
 model Conversation {
@@ -652,4 +564,73 @@ model MessageReaction {
     @@unique([messageId, userId, emoji])
     @@index([messageId])
     @@map("message_reactions")
+}
+
+enum UserRole {
+    ADMIN
+    SECRETAR
+    PROFESOR
+    STUDENT
+    USER
+}
+
+enum EventStatus {
+    DRAFT
+    PENDING_APPROVAL
+    APPROVED
+    PUBLISHED
+    REJECTED
+}
+
+enum Day {
+    LUNI
+    MARTI
+    MIERCURI
+    JOI
+    VINERI
+    SAMBATA
+    DUMINICA
+}
+
+enum LearningTypes {
+    CURS
+    SEMINAR
+    LABORATOR
+    PRACTICA
+}
+
+enum Sex {
+    MASCULIN
+    FEMININ
+}
+
+enum Disability {
+    NONE
+    GRAD_1
+    GRAD_2
+}
+
+enum MaritalStatus {
+    NECASATORIT // Necăsătorit/ă
+    CASATORIT // Căsătorit/ă
+    DIVORTAT // Divorțat/ă
+    VADUV // Văduv/ă
+}
+
+enum ConversationType {
+    DIRECT
+    GROUP
+}
+
+enum MessageType {
+    TEXT
+    IMAGE
+    FILE
+    VOICE
+}
+
+enum AttachmentType {
+    IMAGE
+    FILE
+    VOICE
 }

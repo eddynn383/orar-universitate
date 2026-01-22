@@ -26,7 +26,7 @@ function SelectValue({
 }
 
 const selectVariants = cva(
-    "border-primary-400 data-[placeholder]:text-primary-700 [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-brand-400 focus-visible:ring-brand-400/50 aria-invalid:ring-fail-400/40 aria-invalid:border-fail-400 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-4 py-2 pr-3 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+    "border-primary-300 data-[placeholder]:text-primary-700 [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-brand-400 focus-visible:ring-brand-400/50 aria-invalid:ring-fail-400/40 aria-invalid:border-fail-400 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-4 py-2 pr-3 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
     {
         variants: {
             size: {

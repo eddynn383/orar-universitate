@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react"
 import {
     Dialog,
+    DialogBody,
     DialogContent,
     DialogDescription,
     DialogFooter,
@@ -12,7 +13,7 @@ import {
 } from "@/components/Dialog"
 import { Button } from "@/components/Button"
 import { Spinner } from "@/components/Spinner"
-import { Typography } from "@/components/Typography"
+import { P, H4 } from "@/components/Typography"
 import { FileUp, Download, CheckCircle2, AlertCircle } from "lucide-react"
 import { downloadCSVTemplate } from "@/lib/import"
 
@@ -127,7 +128,7 @@ export function ImportModal({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="secondary">
+                <Button variant="outline">
                     <FileUp className="w-4 h-4 mr-2" />
                     Import
                 </Button>
@@ -137,19 +138,18 @@ export function ImportModal({
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-
-                <div className="space-y-4 py-4">
+                <DialogBody>
                     {/* Download template section */}
-                    <div className="bg-muted/50 border border-border rounded-lg p-4">
-                        <Typography variant="label" className="mb-2">
+                    <div className="bg-muted/50 border border-primary-300 rounded-lg p-4">
+                        <P className="mb-2">
                             Descarcă template
-                        </Typography>
-                        <Typography variant="caption" className="mb-3 text-muted-foreground">
+                        </P>
+                        <P className="[&:not(:first-child)]:mt-3 mb-3 text-sm text-muted-foreground">
                             Descarcă un fișier template CSV cu coloanele necesare pentru import
-                        </Typography>
+                        </P>
                         <Button
                             variant="outline"
-                            size="sm"
+                            size="S"
                             onClick={handleDownloadTemplate}
                         >
                             <Download className="w-4 h-4 mr-2" />
@@ -159,61 +159,70 @@ export function ImportModal({
 
                     {/* File upload section */}
                     <div className="space-y-2">
-                        <Typography variant="label">Selectează fișier</Typography>
-                        <Typography variant="caption" className="text-muted-foreground">
+                        <H4 className="text-base mt-4">Selectează fișier</H4>
+                        <P className="text-muted-foreground text-sm [&:not(:first-child)]:mt-2">
                             Încarcă un fișier CSV sau XLSX cu datele pentru import
-                        </Typography>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".csv,.xlsx,.xls"
-                            onChange={handleFileChange}
-                            className="block w-full text-sm text-muted-foreground
+                        </P>
+                        <div className="border border-primary-300 rounded-lg p-2">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".csv,.xlsx,.xls"
+                                onChange={handleFileChange}
+                                className="block w-full text-sm text-muted-foreground
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-md file:border-0
                                 file:text-sm file:font-medium
-                                file:bg-primary file:text-primary-foreground
-                                hover:file:bg-primary/90
+                                file:bg-primary-200 file:text-primary-foreground
+                                hover:file:bg-primary-300
                                 cursor-pointer"
-                        />
+                            />
+                        </div>
                         {file && (
-                            <Typography variant="caption" className="text-muted-foreground">
+                            <P className="text-muted-foreground">
                                 Fișier selectat: {file.name}
-                            </Typography>
+                            </P>
                         )}
                     </div>
 
                     {/* Results section */}
                     {result && (
-                        <div className={`border rounded-lg p-4 ${
-                            result.success
-                                ? "bg-green-50 border-green-200"
-                                : "bg-red-50 border-red-200"
-                        }`}>
+                        <div className={`border rounded-lg p-4 ${result.success
+                            ? "bg-success-100 border-success-400"
+                            : "bg-fail-200 border-fail-400"
+                            }`}>
                             <div className="flex items-start gap-3">
                                 {result.success ? (
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="w-5 h-5 text-success-400 flex-shrink-0 mt-0.5" />
                                 ) : (
-                                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                                    <AlertCircle className="w-5 h-5 text-fail-400 flex-shrink-0 mt-0.5" />
                                 )}
-                                <div className="flex-1 space-y-2">
-                                    <Typography variant="subtitle" className={
-                                        result.success ? "text-green-900" : "text-red-900"
+                                <div className="flex-1 space-y-2 ">
+                                    <P className={
+                                        result.success ? "text-success-400" : "text-fail-400"
                                     }>
                                         {result.success ? "Import finalizat cu succes!" : "Import finalizat cu erori"}
-                                    </Typography>
-                                    <div className="text-sm space-y-1">
+                                    </P>
+                                    <div className={`text-sm space-y-1 ${result.success ? "text-success-600" : "text-fail-600"}`}>
                                         <p className="text-muted-foreground">
-                                            Total: {result.total} | Succes: {result.successful} | Eșuate: {result.failed}
+                                            <span className="bg-primary-1200 text-primary-100 px-2 py-1 rounded-md mr-2">
+                                                Total: {result.total}
+                                            </span>
+                                            <span className="bg-success-100 text-success-400 px-2 py-1 rounded-md mr-2">
+                                                Succes: {result.successful}
+                                            </span>
+                                            <span className="bg-fail-100 text-fail-400 px-2 py-1 rounded-md mr-2">
+                                                Eșuate: {result.failed}
+                                            </span>
                                         </p>
                                     </div>
 
                                     {/* Show errors */}
                                     {result.errors.length > 0 && (
                                         <div className="mt-3 max-h-48 overflow-y-auto">
-                                            <Typography variant="caption" className="font-medium mb-2">
+                                            <P className={`font-medium mb-2 ${result.success ? "text-success-600" : "text-fail-600"}`}>
                                                 Erori:
-                                            </Typography>
+                                            </P>
                                             <ul className="list-disc list-inside space-y-1 text-xs">
                                                 {result.errors.slice(0, 10).map((error, index) => (
                                                     <li key={index} className="text-red-700">
@@ -233,8 +242,7 @@ export function ImportModal({
                             </div>
                         </div>
                     )}
-                </div>
-
+                </DialogBody>
                 <DialogFooter>
                     {result ? (
                         <>
@@ -251,17 +259,18 @@ export function ImportModal({
                                 Anulează
                             </Button>
                             <Button
+                                variant="brand"
                                 onClick={handleUpload}
                                 disabled={!file || isUploading}
                             >
                                 {isUploading ? (
                                     <>
-                                        <Spinner size="sm" className="mr-2" />
+                                        <Spinner className="w-4 h-4" />
                                         Se importă...
                                     </>
                                 ) : (
                                     <>
-                                        <FileUp className="w-4 h-4 mr-2" />
+                                        <FileUp className="w-4 h-4" />
                                         Începe importul
                                     </>
                                 )}

@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { Label } from "@/components/Label";
 import { AuditUser, LearningTypeWithStudyYears } from "@/types/global";
 import { DialogFooterWithAudit } from "@/components/DialogFooterWithAudit";
-import { Teacher } from "@/app/generated/prisma/client";
+import { Teacher } from "@/types/entities";
 
 const SEMESTERS = [
     {
@@ -34,10 +34,10 @@ type DisciplineFormProps = {
         learningTypeId?: string;
         studyYearId?: string;
         semester?: string;
-        createdAt?: Date | string
-        updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdAt?: Date | string;
+        updatedAt?: Date | string;
+        createdBy?: string | undefined;
+        updatedBy?: string | undefined;
     },
     learningTypes: LearningTypeWithStudyYears[],
     teachers: Teacher[],
@@ -124,21 +124,21 @@ export function DisciplineForm({ defaultValues, learningTypes, teachers, onSucce
                                             <SelectItem key={teacher.id} value={teacher.id}>
                                                 <div className="flex items-center gap-2">
                                                     <div className="relative size-6 rounded-full overflow-hidden flex-shrink-0">
-                                                        {teacher.image ? (
+                                                        {teacher.user?.image ? (
                                                             <Image
-                                                                src={teacher.image}
-                                                                alt={`${teacher.firstname} ${teacher.lastname}`}
+                                                                src={teacher.user.image}
+                                                                alt={`${teacher.user.firstname} ${teacher.user.lastname}`}
                                                                 fill
                                                                 sizes="24px"
                                                                 className="object-cover"
                                                             />
                                                         ) : (
                                                             <div className="size-6 rounded-full bg-primary-200 flex items-center justify-center text-xs">
-                                                                {teacher.firstname.charAt(0)}{teacher.lastname.charAt(0)}
+                                                                {teacher.user?.firstname.charAt(0)}{teacher.user?.lastname.charAt(0)}
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <span>{teacher.firstname} {teacher.lastname}</span>
+                                                    <span>{teacher.user?.firstname} {teacher.user?.lastname}</span>
                                                 </div>
                                             </SelectItem>
                                         ))}

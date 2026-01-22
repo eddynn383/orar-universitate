@@ -24,7 +24,8 @@ type ActionState = {
     success: boolean
     message?: string
     errors?: {
-        name?: string[]
+        firstname?: string[]
+        lastname?: string[]
         email?: string[]
         role?: string[]
         password?: string[]
@@ -35,7 +36,8 @@ type ActionState = {
 type UserFormProps = {
     defaultValues?: {
         id?: string
-        name?: string
+        firstname?: string
+        lastname?: string
         email?: string
         role?: string
         image?: string
@@ -76,18 +78,32 @@ export function UserForm({ defaultValues, onSuccess }: UserFormProps) {
                             <input type="hidden" name="id" value={defaultValues.id} />
                         )}
 
-                        <Field data-invalid={state?.errors?.name ? true : undefined}>
-                            <FieldLabel htmlFor="name">Nume</FieldLabel>
+                        <Field data-invalid={state?.errors?.firstname ? true : undefined}>
+                            <FieldLabel htmlFor="firstname">Prenume</FieldLabel>
                             <Input
-                                id="name"
-                                name="name"
+                                id="firstname"
+                                name="firstname"
                                 sizes="L"
                                 type="text"
-                                placeholder="Ion Popescu"
-                                defaultValue={defaultValues?.name}
-                                aria-invalid={state?.errors?.name ? true : undefined}
+                                placeholder="Ion"
+                                defaultValue={defaultValues?.firstname}
+                                aria-invalid={state?.errors?.firstname ? true : undefined}
                             />
-                            <FieldError>{state?.errors?.name?.[0]}</FieldError>
+                            <FieldError>{state?.errors?.firstname?.[0]}</FieldError>
+                        </Field>
+
+                        <Field data-invalid={state?.errors?.lastname ? true : undefined}>
+                            <FieldLabel htmlFor="lastname">Nume</FieldLabel>
+                            <Input
+                                id="lastname"
+                                name="lastname"
+                                sizes="L"
+                                type="text"
+                                placeholder="Popescu"
+                                defaultValue={defaultValues?.lastname}
+                                aria-invalid={state?.errors?.lastname ? true : undefined}
+                            />
+                            <FieldError>{state?.errors?.lastname?.[0]}</FieldError>
                         </Field>
 
                         <Field data-invalid={state?.errors?.email ? true : undefined}>

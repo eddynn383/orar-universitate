@@ -32,7 +32,7 @@ export default async function DisciplinesPage({ searchParams }: DisciplinesPageP
         if (!searchQuery) return true
 
         const name = discipline.name.toLowerCase()
-        const teacherName = `${discipline.teacher.firstname} ${discipline.teacher.lastname}`.toLowerCase()
+        const teacherName = `${discipline.teacher?.user?.firstname} ${discipline.teacher?.user?.lastname}`.toLowerCase()
 
         return (
             name.includes(searchQuery) ||

@@ -87,7 +87,8 @@ export async function GET(request: NextRequest) {
                 sender: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true,
                         image: true,
                         role: true
@@ -103,7 +104,8 @@ export async function GET(request: NextRequest) {
                                 user: {
                                     select: {
                                         id: true,
-                                        name: true,
+                                        firstname: true,
+                        lastname: true,
                                         image: true
                                     }
                                 }
@@ -124,8 +126,7 @@ export async function GET(request: NextRequest) {
             total,
             page: params.page,
             limit: params.limit,
-            totalPages: Math.ceil(total / params.limit),
-            query
+            totalPages: Math.ceil(total / params.limit)
         })
 
     } catch (error) {

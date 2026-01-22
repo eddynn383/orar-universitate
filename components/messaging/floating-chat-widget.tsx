@@ -14,7 +14,8 @@ import { useSession } from "next-auth/react"
 
 interface User {
     id: string
-    name: string | null
+    firstname: string | null
+    lastname: string | null
     email: string | null
     image: string | null
     role: string
@@ -192,7 +193,7 @@ export function FloatingChatWidget() {
             p => p.user.id !== session?.user?.id
         )
 
-        return otherParticipant?.user.name || otherParticipant?.user.email || 'Utilizator'
+        return (otherParticipant?.user.firstname + " " + otherParticipant?.user.lastname) || otherParticipant?.user.email || 'Utilizator'
     }
 
     const getConversationAvatar = (conversation: Conversation) => {

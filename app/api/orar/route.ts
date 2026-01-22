@@ -215,10 +215,14 @@ export async function GET(request: NextRequest) {
                 teacher: {
                     select: {
                         id: true,
-                        firstname: true,
-                        lastname: true,
                         grade: true,
-                        email: true
+                        email: true,
+                        user: {
+                            select: {
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
                     }
                 },
                 discipline: {
@@ -293,7 +297,7 @@ export async function GET(request: NextRequest) {
             ciclu: event.learnings?.learningCycle,
             profesor: event.teacher ? {
                 id: event.teacher.id,
-                nume: `${event.teacher.grade || ''} ${event.teacher.firstname} ${event.teacher.lastname}`.trim(),
+                nume: `${event.teacher.grade || ''} ${event.teacher.user?.firstname} ${event.teacher.user?.lastname}`.trim(),
                 email: event.teacher.email
             } : null,
             disciplina: event.discipline ? {

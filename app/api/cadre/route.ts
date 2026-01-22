@@ -83,8 +83,8 @@ export async function GET(request: NextRequest) {
 
         if (search) {
             where.OR = [
-                { firstname: { contains: search, mode: 'insensitive' } },
-                { lastname: { contains: search, mode: 'insensitive' } },
+                { user: { firstname: { contains: search, mode: 'insensitive' } } },
+                { user: { lastname: { contains: search, mode: 'insensitive' } } },
                 { email: { contains: search, mode: 'insensitive' } }
             ]
         }
@@ -98,6 +98,14 @@ export async function GET(request: NextRequest) {
         const teachers = await prisma.teacher.findMany({
             where,
             include: {
+                user: {
+                    select: {
+                        firstname: true,
+                        lastname: true,
+                        phone: true,
+                        image: true
+                    }
+                },
                 disciplines: {
                     select: {
                         id: true,
@@ -121,8 +129,8 @@ export async function GET(request: NextRequest) {
                 }
             },
             orderBy: [
-                { lastname: 'asc' },
-                { firstname: 'asc' }
+                { user: { lastname: 'asc' } },
+                { user: { firstname: 'asc' } }
             ],
             skip: (params.page - 1) * params.limit,
             take: params.limit
@@ -130,14 +138,14 @@ export async function GET(request: NextRequest) {
 
         const transformedTeachers = teachers.map(teacher => ({
             id: teacher.id,
-            nume: `${teacher.grade || ''} ${teacher.firstname} ${teacher.lastname}`.trim(),
-            prenume: teacher.firstname,
-            numeFamilie: teacher.lastname,
+            nume: `${teacher.grade || ''} ${teacher.user?.firstname} ${teacher.user?.lastname}`.trim(),
+            prenume: teacher.user?.firstname,
+            numeFamilie: teacher.user?.lastname,
             grad: teacher.grade,
             titlu: teacher.title,
             email: teacher.email,
-            telefon: teacher.phone,
-            imagine: teacher.image,
+            telefon: teacher.user?.phone,
+            imagine: teacher.user?.image,
             discipline: teacher.disciplines.map(d => ({
                 id: d.id,
                 nume: d.name,

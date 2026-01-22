@@ -39,8 +39,8 @@ type StudentActionsProps = {
         image?: string | null
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string
+        updatedBy?: string
     }
 }
 

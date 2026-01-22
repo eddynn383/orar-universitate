@@ -34,6 +34,7 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/cadre', label: 'Cadre didactice' },
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
+        { href: '/studenti', label: 'Studenți' },
         { href: '/sali', label: 'Sali clasa' },
         { href: '/utilizatori', label: 'Utilizatori' }
     ]
@@ -43,11 +44,13 @@ const MainNavigation = ({ session }: MainNavigationProps) => {
         { href: '/cadre', label: 'Cadre didactice' },
         { href: '/discipline', label: 'Discipline' },
         { href: '/grupe', label: 'Grupe' },
+        { href: '/studenti', label: 'Studenți' },
         { href: '/sali', label: 'Sali clasa' }
     ]
 
     const profesorNav = [
-        { href: '/orar', label: 'Orar' }
+        { href: '/orar', label: 'Orar' },
+        { href: '/studenti', label: 'Studenți' }
     ]
 
     const studentNav = [

@@ -7,7 +7,7 @@ import { DisciplineForm } from "../DisciplineForm"  // ← Numele actualizat
 import { Button } from "@/components/Button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/Dropdown"
 import { DeleteDisciplineForm } from "../DeleteDisciplineForm"
-import { Teacher } from "@/app/generated/prisma/client"
+import { Teacher } from "@/types/entities"
 import { LearningTypeWithStudyYears } from "@/types/global"
 
 type DisciplineActionsProps = {
@@ -18,6 +18,10 @@ type DisciplineActionsProps = {
         learningTypeId: string;
         studyYearId?: string;
         semester: string;
+        createdBy?: string | undefined;
+        updatedBy?: string | undefined;
+        createdAt?: Date | string;
+        updatedAt?: Date | string;
     },
     learningTypes: LearningTypeWithStudyYears[]
     teachers: Teacher[]

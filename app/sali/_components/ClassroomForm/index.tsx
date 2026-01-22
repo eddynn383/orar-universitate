@@ -28,8 +28,8 @@ type ClassroomFormProps = {
         building?: string
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string | undefined
+        updatedBy?: string | undefined
     }
     onSuccess?: () => void
 }
@@ -39,6 +39,8 @@ export function ClassroomForm({ defaultValues, onSuccess }: ClassroomFormProps) 
     const action = mode === 'edit' ? updateClassroom : createClassroom
 
     const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null)
+
+    console.log("Classroom defaultValues:", defaultValues);
 
     useEffect(() => {
         if (state?.success) {

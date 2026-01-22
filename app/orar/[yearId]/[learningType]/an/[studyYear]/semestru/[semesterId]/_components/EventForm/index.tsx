@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Spinner } from "@/components/Spinner";
 import { RadioGroup, RadioGroupItem } from "@/components/RadioGroup";
 import { Label } from "@/components/Label";
-import { Classroom, Discipline, Group, Teacher } from "@/app/generated/prisma/client";
+import { Classroom, Discipline, Group } from "@/app/generated/prisma/client";
+import { Teacher } from "@/types/entities";
 import { TIME_SLOTS } from "@/types/global";
 
 const DAYS = [
@@ -425,22 +426,22 @@ export function EventForm({
                                                     <SelectItem key={teacher.id} value={teacher.id}>
                                                         <div className="flex items-center gap-2 w-full">
                                                             <div className="relative size-6 rounded-full overflow-hidden flex-shrink-0">
-                                                                {teacher.image ? (
+                                                                {teacher.user?.image ? (
                                                                     <Image
-                                                                        src={teacher.image}
-                                                                        alt={`${teacher.firstname} ${teacher.lastname}`}
+                                                                        src={teacher.user.image}
+                                                                        alt={`${teacher.user.firstname} ${teacher.user.lastname}`}
                                                                         fill
                                                                         sizes="24px"
                                                                         className="object-cover"
                                                                     />
                                                                 ) : (
                                                                     <div className="size-6 rounded-full bg-primary-200 flex items-center justify-center text-s">
-                                                                        {teacher.firstname.charAt(0)}{teacher.lastname.charAt(0)}
+                                                                        {teacher.user?.firstname.charAt(0)}{teacher.user?.lastname.charAt(0)}
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             <span className="flex-1">
-                                                                {teacher.grade} {teacher.firstname} {teacher.lastname}
+                                                                {teacher.grade} {teacher.user?.firstname} {teacher.user?.lastname}
                                                             </span>
                                                             <span className="text-s text-primary-500 ml-2">
                                                                 ({disciplineCount} {disciplineCount === 1 ? 'materie' : 'materii'})

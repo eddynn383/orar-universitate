@@ -14,7 +14,8 @@ import { UserRole } from "@/app/generated/prisma/enums"
 type UserActionsProps = {
     defaultValues: {
         id: string
-        name?: string
+        firstname: string
+        lastname: string
         email: string
         role: UserRole
         image?: string
@@ -60,7 +61,7 @@ export function UserActions({ defaultValues }: UserActionsProps) {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DeleteUserForm
-                        defaultValues={{ id: defaultValues.id, name: defaultValues.name }}
+                        defaultValues={{ id: defaultValues.id, name: `${defaultValues.firstname} ${defaultValues.lastname}` }}
                         onSuccess={() => setShowDeleteDialog(false)}
                     />
                 </DialogContent>

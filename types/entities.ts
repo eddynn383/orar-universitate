@@ -4,6 +4,21 @@
 
 export type Teacher = {
     id: string
+    email: string
+    grade: string | null
+    title: string | null
+    user: {
+        firstname: string
+        lastname: string
+        phone?: string | null
+        image?: string | null
+        [key: string]: any // Allow additional fields from Prisma
+    } | null
+}
+
+// Flattened view for backward compatibility
+export type TeacherFlat = {
+    id: string
     firstname: string
     lastname: string
     grade: string | null
@@ -30,9 +45,12 @@ export type Group = {
 export type Discipline = {
     id: string
     name: string
-    shortName: string | null
     teacherId: string
-    learningTypeId: string
+    learningTypeId?: string | null
+    learningType?: LearningType | null
+    teacher?: Teacher | null
+    studyYear?: StudyYear
+    semester?: number | null
 }
 
 export type LearningType = {
@@ -72,7 +90,8 @@ export type Event = {
 
 export type User = {
     id: string
-    name: string | null
+    firstname: string
+    lastname: string
     email: string
     role: string
     image: string | null

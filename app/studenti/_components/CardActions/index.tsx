@@ -22,13 +22,13 @@ export async function CardActions({ studentId }: CardActionsProps) {
 
     const defaultValues = {
         id: student.id,
-        firstname: student.firstname,
-        lastname: student.lastname,
+        firstname: student.user?.firstname || "",
+        lastname: student.user?.lastname || "",
         email: student.email,
-        sex: student.sex,
+        sex: student.user?.sex || "MASCULIN",
         cnp: decryptedCNP,
         birthDate: student.birthDate,
-        birthPlace: student.birthPlace,
+        birthPlace: student.birthCity || "", // TODO: Schema mismatch - form expects birthPlace but DB has birthCity/birthAddress/birthCountry
         ethnicity: student.ethnicity || undefined,
         religion: student.religion || undefined,
         citizenship: student.citizenship,
@@ -36,12 +36,12 @@ export async function CardActions({ studentId }: CardActionsProps) {
         socialSituation: student.socialSituation || undefined,
         isOrphan: student.isOrphan,
         needsSpecialConditions: student.needsSpecialConditions,
-        parentsNames: student.parentsNames || undefined,
-        residentialAddress: student.residentialAddress || undefined,
+        parentsNames: undefined, // TODO: Schema mismatch - form expects parentsNames but DB has motherFirstname/motherLastname/fatherFirstname/fatherLastname
+        residentialAddress: undefined, // TODO: Schema mismatch - form expects residentialAddress but field doesn't exist in DB
         specialMedicalCondition: student.specialMedicalCondition || undefined,
         disability: student.disability,
         groupId: student.groupId || undefined,
-        image: student.image,
+        image: student.user?.image || undefined,
         createdAt: student.createdAt,
         updatedAt: student.updatedAt,
         createdById: student.createdById,

@@ -9,7 +9,8 @@ import { ro } from "date-fns/locale"
 
 interface User {
     id: string
-    name: string | null
+    firstname: string | null
+    lastname: string | null
     email: string | null
     image: string | null
     role: string
@@ -80,7 +81,7 @@ export function ConversationList({
             p => p.user.id !== currentUserId
         )
 
-        return otherParticipant?.user.name || otherParticipant?.user.email || 'Utilizator'
+        return (otherParticipant?.user.firstname + " " + otherParticipant?.user.lastname) || otherParticipant?.user.email || 'Utilizator'
     }
 
     const getConversationAvatar = (conversation: Conversation) => {
@@ -141,54 +142,57 @@ export function ConversationList({
                     </div>
                 ) : (
                     <div className="divide-y">
-                        {conversations.map((conversation) => (
-                            <button
-                                key={conversation.id}
-                                onClick={() => onSelectConversation(conversation.id)}
-                                className={`w-full p-4 text-left hover:bg-accent transition-colors ${selectedConversationId === conversation.id
+                        {conversations.map((conversation) => {
+                            console.log("conversation: ", conversation);
+                            return (
+                                <button
+                                    key={conversation.id}
+                                    onClick={() => onSelectConversation(conversation.id)}
+                                    className={`w-full p-4 text-left hover:bg-accent transition-colors ${selectedConversationId === conversation.id
                                         ? 'bg-accent'
                                         : ''
-                                    }`}
-                            >
-                                <div className="flex gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={getConversationAvatar(conversation) || undefined} />
-                                        <AvatarFallback>
-                                            {getInitials(getConversationTitle(conversation))}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                        }`}
+                                >
+                                    <div className="flex gap-3">
+                                        <Avatar>
+                                            <AvatarImage src={getConversationAvatar(conversation) || undefined} />
+                                            <AvatarFallback>
+                                                {getInitials(getConversationTitle(conversation))}
+                                            </AvatarFallback>
+                                        </Avatar>
 
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <h3 className="font-semibold truncate">
-                                                {getConversationTitle(conversation)}
-                                            </h3>
-                                            {conversation.lastMessage && (
-                                                <span className="text-xs text-muted-foreground ml-2">
-                                                    {formatDistanceToNow(
-                                                        new Date(conversation.lastMessage.createdAt),
-                                                        { addSuffix: true, locale: ro }
-                                                    )}
-                                                </span>
-                                            )}
-                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <h3 className="font-semibold truncate">
+                                                    {getConversationTitle(conversation)}
+                                                </h3>
+                                                {conversation.lastMessage && (
+                                                    <span className="text-xs text-muted-foreground ml-2">
+                                                        {formatDistanceToNow(
+                                                            new Date(conversation.lastMessage.createdAt),
+                                                            { addSuffix: true, locale: ro }
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm text-muted-foreground truncate">
-                                                {conversation.lastMessage
-                                                    ? conversation.lastMessage.content
-                                                    : 'Niciun mesaj'}
-                                            </p>
-                                            {conversation.unreadCount > 0 && (
-                                                <span className="ml-2 bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
-                                                    {conversation.unreadCount}
-                                                </span>
-                                            )}
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm text-muted-foreground truncate">
+                                                    {conversation.lastMessage
+                                                        ? conversation.lastMessage.content
+                                                        : 'Niciun mesaj'}
+                                                </p>
+                                                {conversation.unreadCount > 0 && (
+                                                    <span className="ml-2 bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
+                                                        {conversation.unreadCount}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </button>
-                        ))}
+                                </button>
+                            )
+                        })}
                     </div>
                 )}
             </div>

@@ -65,11 +65,13 @@ export async function createStudent(prevState: any, formData: FormData) {
 
             const newUser = await prisma.user.create({
                 data: {
-                    name: `${validation.data.firstname} ${validation.data.lastname}`,
+                    firstname: validation.data.firstname,
+                    lastname: validation.data.lastname,
                     email: validation.data.email,
                     role: "STUDENT",
                     password: hashedPassword,
                     image: validation.data.image || null,
+                    sex: validation.data.sex
                 }
             })
             userId = newUser.id
@@ -199,6 +201,147 @@ export async function deleteStudent(prevState: any, formData: FormData) {
         return {
             success: false,
             message: "Nu s-a putut șterge studentul",
+        }
+    }
+}
+
+export interface BulkAssignResult {
+    success: boolean
+    total: number
+    successful: number
+    failed: number
+    errors: Array<{ studentId: string; message: string }>
+}
+
+export async function bulkAssignStudentsToGroup(
+    studentIds: string[],
+    groupId: string
+): Promise<BulkAssignResult> {
+    const result: BulkAssignResult = {
+        success: false,
+        total: studentIds.length,
+        successful: 0,
+        failed: 0,
+        errors: [],
+    }
+
+    if (studentIds.length === 0) {
+        return {
+            ...result,
+            errors: [{ studentId: "", message: "Nu au fost selectați studenți" }],
+        }
+    }
+
+    try {
+        // Verificăm dacă grupa există
+        const group = await prisma.group.findUnique({
+            where: { id: groupId },
+        })
+
+        if (!group) {
+            return {
+                ...result,
+                errors: [{ studentId: "", message: "Grupa selectată nu există" }],
+            }
+        }
+
+        // Verificăm dacă toți studenții există
+        const existingStudents = await prisma.student.findMany({
+            where: { id: { in: studentIds } },
+            select: { id: true },
+        })
+
+        const existingIds = new Set(existingStudents.map((s) => s.id))
+        const missingIds = studentIds.filter((id) => !existingIds.has(id))
+
+        if (missingIds.length > 0) {
+            missingIds.forEach((id) => {
+                result.errors.push({ studentId: id, message: "Studentul nu există" })
+                result.failed++
+            })
+        }
+
+        // Actualizăm studenții care există
+        const validIds = studentIds.filter((id) => existingIds.has(id))
+
+        if (validIds.length > 0) {
+            await prisma.student.updateMany({
+                where: { id: { in: validIds } },
+                data: { groupId },
+            })
+            result.successful = validIds.length
+        }
+
+        result.success = result.failed === 0
+        revalidatePath("/studenti")
+        revalidatePath("/grupe")
+
+        return result
+    } catch (error) {
+        console.error("Database error:", error)
+        return {
+            ...result,
+            errors: [{ studentId: "", message: "Eroare la actualizarea studenților" }],
+        }
+    }
+}
+
+export async function bulkRemoveStudentsFromGroup(
+    studentIds: string[]
+): Promise<BulkAssignResult> {
+    const result: BulkAssignResult = {
+        success: false,
+        total: studentIds.length,
+        successful: 0,
+        failed: 0,
+        errors: [],
+    }
+
+    if (studentIds.length === 0) {
+        return {
+            ...result,
+            errors: [{ studentId: "", message: "Nu au fost selectați studenți" }],
+        }
+    }
+
+    try {
+        // Verificăm dacă toți studenții există
+        const existingStudents = await prisma.student.findMany({
+            where: { id: { in: studentIds } },
+            select: { id: true },
+        })
+
+        const existingIds = new Set(existingStudents.map((s) => s.id))
+        const missingIds = studentIds.filter((id) => !existingIds.has(id))
+
+        if (missingIds.length > 0) {
+            missingIds.forEach((id) => {
+                result.errors.push({ studentId: id, message: "Studentul nu există" })
+                result.failed++
+            })
+        }
+
+        // Eliminăm grupa pentru studenții care există
+        const validIds = studentIds.filter((id) => existingIds.has(id))
+
+        if (validIds.length > 0) {
+            await prisma.student.updateMany({
+                where: { id: { in: validIds } },
+                data: { groupId: null },
+            })
+            result.successful = validIds.length
+        }
+
+        result.success = result.failed === 0
+        revalidatePath("/studenti")
+        revalidatePath("/grupe")
+
+        return result
+    } catch (error) {
+        console.error("Database error:", error)
+        return {
+            ...result,
+            errors: [{ studentId: "", message: "Eroare la actualizarea studenților" }],
         }
     }
 }

@@ -5,6 +5,7 @@ export const adminSchema = z.object({
     firstname: z.string().min(2, "Prenumele trebuie să fie format din minim 2 caractere"),
     lastname: z.string().min(2, "Numele trebuie să fie format din minim 2 caractere"),
     email: z.string().email("Adresa de email introdusă este invalidă"),
+    sex: z.enum(["MASCULIN", "FEMININ"]),
     phone: z.string().optional(),
     image: z.url("URL invalid pentru imagine").optional().nullable().or(z.literal("")),
 

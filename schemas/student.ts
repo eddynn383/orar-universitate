@@ -2,18 +2,18 @@ import { z } from "zod"
 import { validateCNP } from "@/lib/encryption"
 
 // Enum pentru sex
-export const sexEnum = z.enum(["MASCULIN", "FEMININ"], {
-    errorMap: () => ({ message: "Te rog să selectezi sexul" }),
+export const sexEnum = z.enum(["MASCULIN", "FEMININ"]).refine(val => val !== undefined, {
+    message: "Te rog să selectezi sexul",
 })
 
 // Enum pentru dizabilitate
-export const disabilityEnum = z.enum(["NONE", "GRAD_1", "GRAD_2"], {
-    errorMap: () => ({ message: "Te rog să selectezi gradul de dizabilitate" }),
+export const disabilityEnum = z.enum(["NONE", "GRAD_1", "GRAD_2"]).refine(val => val !== undefined, {
+    message: "Te rog să selectezi gradul de dizabilitate",
 })
 
 // Enum pentru stare civilă
-export const maritalStatusEnum = z.enum(["NECASATORIT", "CASATORIT", "DIVORTAT", "VADUV"], {
-    errorMap: () => ({ message: "Te rog să selectezi starea civilă" }),
+export const maritalStatusEnum = z.enum(["NECASATORIT", "CASATORIT", "DIVORTAT", "VADUV"]).refine(val => val !== undefined, {
+    message: "Te rog să selectezi starea civilă",
 })
 
 // Schema principală pentru Student
@@ -21,7 +21,7 @@ export const studentSchema = z.object({
     // Date de bază
     firstname: z.string().min(2, "Prenumele trebuie să fie format din minim 2 caractere"),
     lastname: z.string().min(2, "Numele trebuie să fie format din minim 2 caractere"),
-    email: z.string().email("Adresa de email introdusă este invalidă"),
+    email: z.email("Adresa de email introdusă este invalidă"),
     image: z.url("URL invalid pentru imagine").optional().nullable().or(z.literal("")),
 
     // Date personale

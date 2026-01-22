@@ -89,7 +89,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const discipline = await prisma.discipline.findUnique({
             where: { id },
             include: {
-                teacher: true,
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
+                    }
+                },
                 studyYear: {
                     include: { learningType: true }
                 },
@@ -116,7 +125,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             cicluId: discipline.learningTypeId,
             profesor: discipline.teacher ? {
                 id: discipline.teacher.id,
-                nume: `${discipline.teacher.grade || ''} ${discipline.teacher.firstname} ${discipline.teacher.lastname}`.trim(),
+                nume: `${discipline.teacher.grade || ''} ${discipline.teacher.user?.firstname} ${discipline.teacher.user?.lastname}`.trim(),
                 email: discipline.teacher.email
             } : null,
             numarEvenimente: discipline._count.events,

@@ -15,7 +15,11 @@ export async function CardActions({ disciplineId }: { disciplineId: string }) {
         semester: discipline?.semester.toString() || "1",
         teacherId: discipline?.teacherId || "",
         studyYearId: discipline?.studyYearId || "",
-        learningTypeId: discipline?.learningTypeId || ""
+        learningTypeId: discipline?.learningTypeId || "",
+        createdBy: discipline?.createdBy ? " " + discipline?.createdBy?.firstname + " " + discipline?.createdBy?.lastname : undefined,
+        updatedBy: discipline?.updatedBy ? " " + discipline?.updatedBy?.firstname + " " + discipline?.updatedBy?.lastname : undefined,
+        createdAt: discipline?.createdAt,
+        updatedAt: discipline?.updatedAt,
     }
 
     return (

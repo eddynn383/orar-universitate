@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs"
 
 const profileSchema = z.object({
     userId: z.string().min(1, "User ID is required"),
-    name: z.string().min(2, "Numele trebuie să aibă cel puțin 2 caractere").optional().or(z.literal("")),
+    firstname: z.string().min(2, "Prenumele trebuie să aibă cel puțin 2 caractere").optional().or(z.literal("")),
+    lastname: z.string().min(2, "Numele trebuie să aibă cel puțin 2 caractere").optional().or(z.literal("")),
     email: z.string().email("Email invalid").optional().or(z.literal("")),
     phone: z.string().optional().or(z.literal("")),
     address: z.string().optional().or(z.literal("")),
@@ -69,8 +70,9 @@ export async function updateProfile(prevState: any, formData: FormData) {
         await prisma.user.update({
             where: { id: userId },
             data: {
-                name: profileData.name || null,
-                email: profileData.email || null,
+                firstname: profileData.firstname,
+                lastname: profileData.lastname,
+                email: profileData.email,
                 phone: profileData.phone || null,
                 address: profileData.address || null,
                 city: profileData.city || null,

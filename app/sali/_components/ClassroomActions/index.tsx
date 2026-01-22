@@ -14,6 +14,10 @@ type ClassroomActionsProps = {
         name?: string
         capacity?: number
         building?: string
+        createdBy?: string
+        updatedBy?: string
+        createdAt?: Date | string
+        updatedAt?: Date | string
     }
 }
 

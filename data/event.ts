@@ -3,7 +3,16 @@
 import prisma from "@/lib/prisma"
 
 const eventInclude = {
-    teacher: true,
+    teacher: {
+        include: {
+            user: {
+                select: {
+                    firstname: true,
+                    lastname: true
+                }
+            }
+        }
+    },
     discipline: {
         include: {
             studyYear: true
@@ -20,8 +29,24 @@ const eventInclude = {
         }
     },
     learnings: true,
-    createdBy: true,
-    updatedBy: true
+    createdBy: {
+        select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            image: true
+        }
+    },
+    updatedBy: {
+        select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            image: true
+        }
+    }
 }
 
 export async function getAllEvents() {

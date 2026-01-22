@@ -79,8 +79,7 @@ export async function GET(request: NextRequest) {
             total,
             page: params.page,
             limit: params.limit,
-            totalPages: Math.ceil(total / params.limit),
-            unreadCount
+            totalPages: Math.ceil(total / params.limit)
         })
 
     } catch (error) {

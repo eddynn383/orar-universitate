@@ -32,7 +32,7 @@ export default async function TeachersPage({ searchParams }: TeachersPageProps) 
     const filteredTeachers = teachers.filter((teacher) => {
         if (!searchQuery) return true
 
-        const fullName = `${teacher.firstname} ${teacher.lastname}`.toLowerCase()
+        const fullName = `${teacher.user?.firstname} ${teacher.user?.lastname}`.toLowerCase()
         const email = teacher.email.toLowerCase()
         const grade = teacher.grade?.toLowerCase() || ""
 
@@ -171,12 +171,12 @@ export default async function TeachersPage({ searchParams }: TeachersPageProps) 
                                                                     <CardContent className="px-0">
                                                                         <div className="flex gap-4 items-center">
                                                                             <Avatar className="size-16 rounded-md">
-                                                                                <AvatarImage src={teacher.image || ""} />
-                                                                                <AvatarFallback className="rounded-md">{teacher.firstname.charAt(0)} {teacher.lastname.charAt(0)}</AvatarFallback>
+                                                                                <AvatarImage src={teacher.user?.image || ""} />
+                                                                                <AvatarFallback className="rounded-md">{teacher.user?.firstname.charAt(0)} {teacher.user?.lastname.charAt(0)}</AvatarFallback>
                                                                             </Avatar>
                                                                             <div className="flex flex-col gap-1 flex-1">
                                                                                 <P className="text-md text-primary-600">{teacher.grade} {teacher.title}</P>
-                                                                                <H2 className="text-lg pb-0">{teacher.firstname} {teacher.lastname}</H2>
+                                                                                <H2 className="text-lg pb-0">{teacher.user?.firstname} {teacher.user?.lastname}</H2>
                                                                             </div>
                                                                             <AdminOnlyServer>
                                                                                 {

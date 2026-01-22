@@ -98,11 +98,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 teacher: {
                     select: {
                         id: true,
-                        firstname: true,
-                        lastname: true,
                         grade: true,
                         email: true,
-                        phone: true
+                        user: {
+                            select: {
+                                firstname: true,
+                                lastname: true,
+                                phone: true
+                            }
+                        }
                     }
                 },
                 discipline: {
@@ -165,14 +169,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 createdBy: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true
                     }
                 },
                 updatedBy: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true
                     }
                 }
@@ -208,12 +214,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             } : null,
             profesor: event.teacher ? {
                 id: event.teacher.id,
-                nume: `${event.teacher.grade || ''} ${event.teacher.firstname} ${event.teacher.lastname}`.trim(),
-                prenume: event.teacher.firstname,
-                numeFamilie: event.teacher.lastname,
+                nume: `${event.teacher.grade || ''} ${event.teacher.user?.firstname} ${event.teacher.user?.lastname}`.trim(),
+                prenume: event.teacher.user?.firstname,
+                numeFamilie: event.teacher.user?.lastname,
                 grad: event.teacher.grade,
                 email: event.teacher.email,
-                telefon: event.teacher.phone
+                telefon: event.teacher.user?.phone
             } : null,
             disciplina: event.discipline ? {
                 id: event.discipline.id,
@@ -237,13 +243,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             audit: {
                 creatDe: event.createdBy ? {
                     id: event.createdBy.id,
-                    nume: event.createdBy.name,
+                    nume: `${event.createdBy.firstname} ${event.createdBy.lastname}`.trim(),
                     email: event.createdBy.email
                 } : null,
                 creatLa: event.createdAt,
                 modificatDe: event.updatedBy ? {
                     id: event.updatedBy.id,
-                    nume: event.updatedBy.name,
+                    nume: `${event.updatedBy.firstname} ${event.updatedBy.lastname}`.trim(),
                     email: event.updatedBy.email
                 } : null,
                 modificatLa: event.updatedAt

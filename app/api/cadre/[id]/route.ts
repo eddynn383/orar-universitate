@@ -93,6 +93,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const teacher = await prisma.teacher.findUnique({
             where: { id },
             include: {
+                user: {
+                    select: {
+                        firstname: true,
+                        lastname: true,
+                        phone: true,
+                        image: true
+                    }
+                },
                 disciplines: {
                     include: {
                         studyYear: {
@@ -130,14 +138,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const transformed = {
             id: teacher.id,
-            nume: `${teacher.grade || ''} ${teacher.firstname} ${teacher.lastname}`.trim(),
-            prenume: teacher.firstname,
-            numeFamilie: teacher.lastname,
+            nume: `${teacher.grade || ''} ${teacher.user?.firstname} ${teacher.user?.lastname}`.trim(),
+            prenume: teacher.user?.firstname,
+            numeFamilie: teacher.user?.lastname,
             grad: teacher.grade,
             titlu: teacher.title,
             email: teacher.email,
-            telefon: teacher.phone,
-            imagine: teacher.image,
+            telefon: teacher.user?.phone,
+            imagine: teacher.user?.image,
             discipline: teacher.disciplines.map(d => ({
                 id: d.id,
                 nume: d.name,
@@ -225,7 +233,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         const { id } = await params
         const body = await request.json()
 
-        const existing = await prisma.teacher.findUnique({ where: { id } })
+        const existing = await prisma.teacher.findUnique({
+            where: { id },
+            include: {
+                user: {
+                    select: {
+                        firstname: true,
+                        lastname: true,
+                        phone: true,
+                        image: true
+                    }
+                }
+            }
+        })
         if (!existing) {
             return errorResponse(
                 API_ERRORS.NOT_FOUND.message,
@@ -235,13 +255,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         }
 
         const mappedData = {
-            firstname: body.prenume ?? existing.firstname,
-            lastname: body.numeFamilie ?? existing.lastname,
+            firstname: body.prenume ?? existing.user?.firstname,
+            lastname: body.numeFamilie ?? existing.user?.lastname,
             email: body.email ?? existing.email,
-            phone: body.telefon ?? existing.phone,
+            phone: body.telefon ?? existing.user?.phone,
             grade: body.grad ?? existing.grade,
             title: body.titlu ?? existing.title,
-            image: body.imagine ?? existing.image
+            image: body.imagine ?? existing.user?.image
         }
 
         const validation = teacherSchema.safeParse(mappedData)

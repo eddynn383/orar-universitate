@@ -28,7 +28,7 @@ import {
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     // Verifică autentificarea
     const authResult = await requireAuth()
@@ -48,7 +48,7 @@ export async function POST(
     }
 
     try {
-        const eventId = params.id
+        const { id: eventId } = await params
 
         // Verifică dacă evenimentul există
         const event = await prisma.event.findUnique({

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/Dialog"
 import { DisciplineForm } from "../DisciplineForm"
 import { useState } from "react"
 import { LearningTypeWithStudyYears } from "@/types/global"
-import { Teacher } from "@/app/generated/prisma/client"
+import { Teacher } from "@/types/entities"
 
 type CreateDisciplineModalProps = {
     trigger: React.ReactNode

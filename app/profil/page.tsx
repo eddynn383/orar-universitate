@@ -15,7 +15,8 @@ export default async function ProfilePage() {
         where: { id: session.user.id },
         select: {
             id: true,
-            name: true,
+            firstname: true,
+            lastname: true,
             email: true,
             image: true,
             phone: true,

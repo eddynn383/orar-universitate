@@ -26,7 +26,7 @@ import {
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     // Verifică autentificarea
     const authResult = await requireAuth()
@@ -46,7 +46,7 @@ export async function POST(
     }
 
     try {
-        const eventId = params.id
+        const { id: eventId } = await params
         const body = await request.json()
         const rejectionReason = body.rejectionReason || "Fără motiv specificat"
 

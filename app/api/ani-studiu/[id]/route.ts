@@ -121,9 +121,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                         teacher: {
                             select: {
                                 id: true,
-                                firstname: true,
-                                lastname: true,
-                                grade: true
+                                grade: true,
+                                user: {
+                                    select: {
+                                        firstname: true,
+                                        lastname: true
+                                    }
+                                }
                             }
                         }
                     },
@@ -165,7 +169,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 semestru: d.semester,
                 profesor: d.teacher ? {
                     id: d.teacher.id,
-                    nume: `${d.teacher.grade || ''} ${d.teacher.firstname} ${d.teacher.lastname}`.trim()
+                    nume: `${d.teacher.grade || ''} ${d.teacher.user?.firstname} ${d.teacher.user?.lastname}`.trim()
                 } : null
             })),
             statistici: {

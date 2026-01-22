@@ -10,7 +10,8 @@ export async function CardActions({ userId }: { userId: string }) {
 
     const defaultValues = {
         id: user.id,
-        name: user.name ?? undefined,
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email ?? "",
         role: user.role,
         image: user.image ?? undefined

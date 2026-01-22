@@ -4,10 +4,12 @@ export const secretarySchema = z.object({
     // Date de bază
     firstname: z.string().min(2, "Prenumele trebuie să fie format din minim 2 caractere"),
     lastname: z.string().min(2, "Numele trebuie să fie format din minim 2 caractere"),
-    email: z.string().email("Adresa de email introdusă este invalidă"),
+    email: z.email("Adresa de email introdusă este invalidă"),
     phone: z.string().optional(),
     image: z.url("URL invalid pentru imagine").optional().nullable().or(z.literal("")),
-
+    sex: z.enum(["MASCULIN", "FEMININ"]).refine(val => val !== undefined, {
+        message: "Te rog să selectezi sexul",
+    }),
     // Informații specifice secretarului/secretarei
     department: z.string().optional(),
     office: z.string().optional(),

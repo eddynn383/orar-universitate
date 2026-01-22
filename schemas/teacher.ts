@@ -7,7 +7,9 @@ export const teacherSchema = z.object({
     email: z.string().email("Adresa de email introdusa este invalida"),
     phone: z.string().optional(),
     image: z.url("URL invalid pentru imagine").optional().nullable().or(z.literal("")),
-
+    sex: z.enum(["MASCULIN", "FEMININ"]).refine(val => val !== undefined, {
+        message: "Te rog să selectezi sexul",
+    }),
     // Informații academice
     title: z.string().optional(),
     grade: z.string().optional(),

@@ -84,33 +84,33 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
         })
 
         // Listen for reactions (disabled until DB migration)
-        // socket.on('message_reaction', ({ messageId, reaction, action }: any) => {
-        //     if (action === 'added' && reaction) {
-        //         setMessages(prev =>
-        //             prev.map(msg =>
-        //                 msg.id === messageId
-        //                     ? {
-        //                         ...msg,
-        //                         reactions: [...(msg.reactions || []), reaction]
-        //                     }
-        //                     : msg
-        //             )
-        //         )
-        //     } else if (action === 'removed') {
-        //         setMessages(prev =>
-        //             prev.map(msg =>
-        //                 msg.id === messageId
-        //                     ? {
-        //                         ...msg,
-        //                         reactions: (msg.reactions || []).filter(
-        //                             r => !(r.user.id === reaction?.user?.id && r.emoji === reaction?.emoji)
-        //                         )
-        //                     }
-        //                     : msg
-        //             )
-        //         )
-        //     }
-        // })
+        socket.on('message_reaction', ({ messageId, reaction, action }: any) => {
+            if (action === 'added' && reaction) {
+                setMessages(prev =>
+                    prev.map(msg =>
+                        msg.id === messageId
+                            ? {
+                                ...msg,
+                                reactions: [...(msg.reactions || []), reaction]
+                            }
+                            : msg
+                    )
+                )
+            } else if (action === 'removed') {
+                setMessages(prev =>
+                    prev.map(msg =>
+                        msg.id === messageId
+                            ? {
+                                ...msg,
+                                reactions: (msg.reactions || []).filter(
+                                    r => !(r.user.id === reaction?.user?.id && r.emoji === reaction?.emoji)
+                                )
+                            }
+                            : msg
+                    )
+                )
+            }
+        })
 
         // Listen for typing indicators
         socket.on('user_typing', ({ userId }: { userId: string }) => {
@@ -320,7 +320,7 @@ export function ChatWindow({ conversationId, currentUserId }: ChatWindowProps) {
                                     onEdit={handleEditMessage}
                                     onDelete={handleDeleteMessage}
                                     // onReact disabled until DB migration
-                                    // onReact={handleReaction}
+                                    onReact={handleReaction}
                                 />
                             )
                         })}

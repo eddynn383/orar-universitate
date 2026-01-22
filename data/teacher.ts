@@ -20,10 +20,11 @@ export const getAllTeachers = async () => {
 
         const allTeachers = await prisma.teacher.findMany({
             orderBy: [
-                { lastname: "asc" },
-                { firstname: "asc" }
+                { user: { lastname: "asc" }, },
+                { user: { firstname: "asc" }, }
             ],
             include: {
+                user: true,
                 events: true,
                 disciplines: true
             }
@@ -48,13 +49,15 @@ export const getTeacherById = async (id: string) => {
                 createdBy: {
                     select: {
                         id: true,
-                        name: true
+                        firstname: true,
+                        lastname: true
                     }
                 },
                 updatedBy: {
                     select: {
                         id: true,
-                        name: true
+                        firstname: true,
+                        lastname: true
                     }
                 }
             }

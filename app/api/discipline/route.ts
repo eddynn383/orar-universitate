@@ -114,9 +114,13 @@ export async function GET(request: NextRequest) {
                 teacher: {
                     select: {
                         id: true,
-                        firstname: true,
-                        lastname: true,
-                        grade: true
+                        grade: true,
+                        user: {
+                            select: {
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
                     }
                 },
                 studyYear: {
@@ -156,7 +160,7 @@ export async function GET(request: NextRequest) {
             anStudiuId: d.studyYearId,
             profesor: d.teacher ? {
                 id: d.teacher.id,
-                nume: `${d.teacher.grade || ''} ${d.teacher.firstname} ${d.teacher.lastname}`.trim()
+                nume: `${d.teacher.grade || ''} ${d.teacher.user?.firstname} ${d.teacher.user?.lastname}`.trim()
             } : null,
             numarEvenimente: d._count.events,
             createdAt: d.createdAt,

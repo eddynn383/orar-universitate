@@ -39,18 +39,17 @@ export async function createUser(prevState: any, formData: FormData) {
 
     try {
         // Separă numele în prenume și nume de familie
-        const nameParts = validation.data.name.trim().split(" ")
-        const firstname = nameParts[0] || validation.data.name
-        const lastname = nameParts.slice(1).join(" ") || validation.data.name
 
         // Creează utilizatorul cu profilul corespunzător
         const user = await prisma.user.create({
             data: {
-                name: validation.data.name,
+                firstname: validation.data.firstname,
+                lastname: validation.data.lastname,
                 email: validation.data.email,
                 role: validation.data.role,
                 password: hashedPassword,
                 image: validation.data.image || null,
+                sex: validation.data.sex
             }
         })
 
@@ -58,14 +57,10 @@ export async function createUser(prevState: any, formData: FormData) {
         if (validation.data.role === "PROFESOR") {
             await prisma.teacher.create({
                 data: {
-                    firstname,
-                    lastname,
                     email: validation.data.email,
-                    phone: null,
                     title: null,
                     grade: null,
                     education: null,
-                    image: validation.data.image || null,
                     userId: user.id,
                     createdById: user.id,
                     updatedById: user.id,
@@ -77,17 +72,14 @@ export async function createUser(prevState: any, formData: FormData) {
 
             await prisma.student.create({
                 data: {
-                    firstname,
-                    lastname,
                     email: validation.data.email,
                     publicId,
-                    sex: "MASCULIN", // Default, poate fi editat ulterior
+                    // sex: "MASCULIN", // Default, poate fi editat ulterior
                     cnpEncrypted: "0000000000000", // Temporar, trebuie completat ulterior
                     birthDate: new Date("2000-01-01"), // Default, trebuie completat ulterior
-                    birthPlace: "Necompletat", // Trebuie completat ulterior
+                    birthCity: "Necompletat", // Trebuie completat ulterior
                     citizenship: "Română",
-                    maritalStatus: "Necăsătorit/ă",
-                    image: validation.data.image || null,
+                    // maritalStatus: "Necăsătorit/ă",
                     userId: user.id,
                     createdById: user.id,
                     updatedById: user.id,
@@ -96,16 +88,12 @@ export async function createUser(prevState: any, formData: FormData) {
         } else if (validation.data.role === "SECRETAR") {
             await prisma.secretary.create({
                 data: {
-                    firstname,
-                    lastname,
                     email: validation.data.email,
-                    phone: null,
                     department: null,
                     office: null,
                     officePhone: null,
                     workSchedule: null,
                     responsibilities: null,
-                    image: validation.data.image || null,
                     userId: user.id,
                     createdById: user.id,
                     updatedById: user.id,
@@ -114,16 +102,12 @@ export async function createUser(prevState: any, formData: FormData) {
         } else if (validation.data.role === "ADMIN") {
             await prisma.admin.create({
                 data: {
-                    firstname,
-                    lastname,
                     email: validation.data.email,
-                    phone: null,
                     department: null,
                     adminRole: null,
                     officePhone: null,
                     responsibilities: null,
                     accessLevel: 1, // Nivel de acces default
-                    image: validation.data.image || null,
                     userId: user.id,
                     createdById: user.id,
                     updatedById: user.id,
@@ -191,13 +175,9 @@ export async function updateUser(prevState: any, formData: FormData) {
             return { success: false, message: "Utilizatorul nu a fost găsit" }
         }
 
-        // Separă numele în prenume și nume de familie
-        const nameParts = validation.data.name.trim().split(" ")
-        const firstname = nameParts[0] || validation.data.name
-        const lastname = nameParts.slice(1).join(" ") || validation.data.name
-
         const updateData: any = {
-            name: validation.data.name,
+            firstname: validation.data.firstname,
+            lastname: validation.data.lastname,
             email: validation.data.email,
             role: validation.data.role,
             image: validation.data.image || null,
@@ -248,10 +228,7 @@ export async function updateUser(prevState: any, formData: FormData) {
                 await prisma.teacher.update({
                     where: { id: currentUser.teacherProfile.id },
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        image: validation.data.image || null,
                         updatedById: validation.data.id,
                     }
                 })
@@ -259,14 +236,10 @@ export async function updateUser(prevState: any, formData: FormData) {
                 // Creează profil nou
                 await prisma.teacher.create({
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        phone: null,
                         title: null,
                         grade: null,
                         education: null,
-                        image: validation.data.image || null,
                         userId: validation.data.id,
                         createdById: validation.data.id,
                         updatedById: validation.data.id,
@@ -279,10 +252,7 @@ export async function updateUser(prevState: any, formData: FormData) {
                 await prisma.student.update({
                     where: { id: currentUser.studentProfile.id },
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        image: validation.data.image || null,
                         updatedById: validation.data.id,
                     }
                 })
@@ -292,17 +262,12 @@ export async function updateUser(prevState: any, formData: FormData) {
 
                 await prisma.student.create({
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
                         publicId,
-                        sex: "MASCULIN",
                         cnpEncrypted: "0000000000000",
                         birthDate: new Date("2000-01-01"),
-                        birthPlace: "Necompletat",
+                        birthCity: "Necompletat",
                         citizenship: "Română",
-                        maritalStatus: "Necăsătorit/ă",
-                        image: validation.data.image || null,
                         userId: validation.data.id,
                         createdById: validation.data.id,
                         updatedById: validation.data.id,
@@ -315,10 +280,7 @@ export async function updateUser(prevState: any, formData: FormData) {
                 await prisma.secretary.update({
                     where: { id: currentUser.secretaryProfile.id },
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        image: validation.data.image || null,
                         updatedById: validation.data.id,
                     }
                 })
@@ -326,16 +288,12 @@ export async function updateUser(prevState: any, formData: FormData) {
                 // Creează profil nou
                 await prisma.secretary.create({
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        phone: null,
                         department: null,
                         office: null,
                         officePhone: null,
                         workSchedule: null,
                         responsibilities: null,
-                        image: validation.data.image || null,
                         userId: validation.data.id,
                         createdById: validation.data.id,
                         updatedById: validation.data.id,
@@ -348,10 +306,7 @@ export async function updateUser(prevState: any, formData: FormData) {
                 await prisma.admin.update({
                     where: { id: currentUser.adminProfile.id },
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        image: validation.data.image || null,
                         updatedById: validation.data.id,
                     }
                 })
@@ -359,16 +314,12 @@ export async function updateUser(prevState: any, formData: FormData) {
                 // Creează profil nou
                 await prisma.admin.create({
                     data: {
-                        firstname,
-                        lastname,
                         email: validation.data.email,
-                        phone: null,
                         department: null,
                         adminRole: null,
                         officePhone: null,
                         responsibilities: null,
                         accessLevel: 1,
-                        image: validation.data.image || null,
                         userId: validation.data.id,
                         createdById: validation.data.id,
                         updatedById: validation.data.id,

@@ -9,16 +9,21 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Spinner } from "@/components/Spinner"
 import { ImageUpload } from "@/components/ImageUpload"
 import { useActionState, useEffect, useState } from "react"
-import { P } from "@/components/Typography"
 import { AuditUser } from "@/types/global"
 import { DialogFooterWithAudit } from "@/components/DialogFooterWithAudit"
 import { Checkbox } from "@/components/Checkbox"
 import { Eye, EyeOff } from "lucide-react"
-import { censorCNP } from "@/lib/encryption"
 
 const SEX_OPTIONS = [
     { name: "Masculin", value: "MASCULIN" },
     { name: "Feminin", value: "FEMININ" },
+]
+
+const MARITAL_STATUS_OPTIONS = [
+    { name: "Necăsătorit/ă", value: "NECASATORIT" },
+    { name: "Căsătorit/ă", value: "CASATORIT" },
+    { name: "Divorțat/ă", value: "DIVORTAT" },
+    { name: "Văduv/ă", value: "VADUV" },
 ]
 
 const DISABILITY_OPTIONS = [
@@ -79,8 +84,8 @@ type StudentFormProps = {
         image?: string | null
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string
+        updatedBy?: string
     }
     groups?: Array<{ id: string; name: string }>
     onSuccess?: () => void
@@ -94,6 +99,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
 
     // State pentru Select-uri și imagine
     const [selectedSex, setSelectedSex] = useState<string>(defaultValues?.sex || SEX_OPTIONS[0].value)
+    const [selectedMaritalStatus, setSelectedMaritalStatus] = useState<string>(defaultValues?.maritalStatus || MARITAL_STATUS_OPTIONS[0].value)
     const [selectedDisability, setSelectedDisability] = useState<string>(
         defaultValues?.disability || DISABILITY_OPTIONS[0].value
     )
@@ -165,6 +171,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="firstname"
                                     name="firstname"
                                     type="text"
+                                    sizes="L"
                                     defaultValue={defaultValues?.firstname}
                                     aria-invalid={state?.errors?.firstname ? true : undefined}
                                     disabled={pending}
@@ -178,6 +185,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="lastname"
                                     name="lastname"
                                     type="text"
+                                    sizes="L"
                                     defaultValue={defaultValues?.lastname}
                                     aria-invalid={state?.errors?.lastname ? true : undefined}
                                     disabled={pending}
@@ -193,6 +201,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="email"
                                     name="email"
                                     type="email"
+                                    sizes="L"
                                     defaultValue={defaultValues?.email}
                                     aria-invalid={state?.errors?.email ? true : undefined}
                                     disabled={pending}
@@ -228,6 +237,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     <Input
                                         id="cnp"
                                         name="cnp"
+                                        sizes="L"
                                         type={showCNP ? "text" : "password"}
                                         value={cnpValue}
                                         onChange={(e) => setCnpValue(e.target.value)}
@@ -252,6 +262,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="birthDate"
                                     name="birthDate"
                                     type="date"
+                                    sizes="L"
                                     defaultValue={formattedBirthDate}
                                     aria-invalid={state?.errors?.birthDate ? true : undefined}
                                     disabled={pending}
@@ -266,6 +277,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 id="birthPlace"
                                 name="birthPlace"
                                 type="text"
+                                sizes="L"
                                 defaultValue={defaultValues?.birthPlace}
                                 aria-invalid={state?.errors?.birthPlace ? true : undefined}
                                 disabled={pending}
@@ -281,6 +293,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="ethnicity"
                                     name="ethnicity"
                                     type="text"
+                                    sizes="L"
                                     defaultValue={defaultValues?.ethnicity}
                                     aria-invalid={state?.errors?.ethnicity ? true : undefined}
                                     disabled={pending}
@@ -294,6 +307,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="religion"
                                     name="religion"
                                     type="text"
+                                    sizes="L"
                                     defaultValue={defaultValues?.religion}
                                     aria-invalid={state?.errors?.religion ? true : undefined}
                                     disabled={pending}
@@ -309,6 +323,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                     id="citizenship"
                                     name="citizenship"
                                     type="text"
+                                    sizes="L"
                                     defaultValue={defaultValues?.citizenship || "Română"}
                                     aria-invalid={state?.errors?.citizenship ? true : undefined}
                                     disabled={pending}
@@ -318,14 +333,20 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
 
                             <Field data-invalid={state?.errors?.maritalStatus ? true : undefined} className="flex-1">
                                 <FieldLabel htmlFor="maritalStatus">Stare civilă</FieldLabel>
-                                <Input
-                                    id="maritalStatus"
-                                    name="maritalStatus"
-                                    type="text"
-                                    defaultValue={defaultValues?.maritalStatus || "Necăsătorit/ă"}
-                                    aria-invalid={state?.errors?.maritalStatus ? true : undefined}
-                                    disabled={pending}
-                                />
+                                <Select name="maritalStatus" value={selectedMaritalStatus} onValueChange={setSelectedMaritalStatus}>
+                                    <SelectTrigger size="L" aria-invalid={state?.errors?.maritalStatus ? true : undefined}>
+                                        <SelectValue placeholder="Selectează opțiune" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            {MARITAL_STATUS_OPTIONS.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
                                 <FieldError>{state?.errors?.maritalStatus?.[0]}</FieldError>
                             </Field>
                         </div>
@@ -337,6 +358,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 id="socialSituation"
                                 name="socialSituation"
                                 type="text"
+                                sizes="L"
                                 defaultValue={defaultValues?.socialSituation}
                                 aria-invalid={state?.errors?.socialSituation ? true : undefined}
                                 disabled={pending}
@@ -373,6 +395,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 id="parentsNames"
                                 name="parentsNames"
                                 type="text"
+                                sizes="L"
                                 defaultValue={defaultValues?.parentsNames}
                                 aria-invalid={state?.errors?.parentsNames ? true : undefined}
                                 disabled={pending}
@@ -386,6 +409,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 id="residentialAddress"
                                 name="residentialAddress"
                                 type="text"
+                                sizes="L"
                                 defaultValue={defaultValues?.residentialAddress}
                                 aria-invalid={state?.errors?.residentialAddress ? true : undefined}
                                 disabled={pending}
@@ -400,6 +424,7 @@ export function StudentForm({ defaultValues, groups = [], onSuccess }: StudentFo
                                 id="specialMedicalCondition"
                                 name="specialMedicalCondition"
                                 type="text"
+                                sizes="L"
                                 defaultValue={defaultValues?.specialMedicalCondition}
                                 aria-invalid={state?.errors?.specialMedicalCondition ? true : undefined}
                                 disabled={pending}

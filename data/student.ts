@@ -17,8 +17,9 @@ export const setStudent = async (body: any) => {
 export const getAllStudents = async () => {
     try {
         const allStudents = await prisma.student.findMany({
-            orderBy: [{ lastname: "asc" }, { firstname: "asc" }],
+            orderBy: [{ user: { lastname: "asc" } }, { user: { firstname: "asc" } }],
             include: {
+                user: true,
                 group: {
                     include: {
                         studyYear: true,
@@ -51,6 +52,14 @@ export const getStudentById = async (id: string) => {
                 id,
             },
             include: {
+                user: {
+                    select: {
+                        firstname: true,
+                        lastname: true,
+                        image: true,
+                        sex: true
+                    }
+                },
                 group: {
                     include: {
                         studyYear: true,

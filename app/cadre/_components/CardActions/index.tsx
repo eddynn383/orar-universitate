@@ -2,8 +2,6 @@
 
 import { getTeacherById } from "@/data/teacher"
 import { TeacherActions } from "../TeacherActions"
-import { Card } from '@/components/Card';
-import { User } from "@/types/entities";
 
 type CardActionsProps = {
     teacherId: string
@@ -21,24 +19,11 @@ export async function CardActions({ teacherId, user }: CardActionsProps) {
         id: teacher?.id,
         title: teacher?.title || "",
         grade: teacher?.grade || "",
-        firstname: teacher?.firstname || "",
-        lastname: teacher?.lastname || "",
         email: teacher?.email || "",
-        phone: teacher?.phone || "",
+        createdBy: teacher?.createdBy ? " " + teacher?.createdBy?.firstname + " " + teacher?.createdBy?.lastname : undefined,
+        updatedBy: teacher?.updatedBy ? " " + teacher?.updatedBy?.firstname + " " + teacher?.updatedBy?.lastname : undefined,
         createdAt: teacher?.createdAt,
         updatedAt: teacher?.updatedAt,
-        createdBy: teacher?.createdBy
-            ? {
-                id: teacher.createdBy.id,
-                name: teacher.createdBy.name || "Unknown",
-            }
-            : undefined,
-        updatedBy: teacher?.updatedBy
-            ? {
-                id: teacher.updatedBy.id,
-                name: teacher.updatedBy.name || "Unknown",
-            }
-            : undefined,
     }
 
     return (

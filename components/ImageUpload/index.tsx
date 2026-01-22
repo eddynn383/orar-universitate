@@ -126,7 +126,7 @@ export function ImageUpload({
                         "size-24 rounded-lg border-2 border-dashed cursor-pointer transition-colors flex flex-col items-center justify-center gap-1 w-full min-h-[160px] p-6",
                         isDragActive
                             ? "border-brand-400 bg-brand-400/10"
-                            : "border-primary-400 hover:border-brand-400 hover:bg-primary-100",
+                            : "border-primary-300 hover:border-brand-400 hover:bg-primary-100",
                         (disabled || isUploading) && "opacity-50 cursor-not-allowed"
                     )}
                 >

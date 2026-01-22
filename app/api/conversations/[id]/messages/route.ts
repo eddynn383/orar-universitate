@@ -6,6 +6,16 @@
 
 import { NextRequest } from "next/server"
 import prisma from "@/lib/prisma"
+
+// Extend the global type to include 'io'
+declare global {
+    // Replace 'any' with the actual type of your io instance if available
+    // For example, if using socket.io: import type { Server as IOServer } from "socket.io";
+    // and then: var io: IOServer;
+    // Here we use 'any' for general compatibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    var io: any;
+}
 import {
     successResponse,
     errorResponse,
@@ -90,7 +100,8 @@ export async function GET(
                 sender: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true,
                         image: true,
                         role: true
@@ -194,7 +205,8 @@ export async function POST(
                 sender: {
                     select: {
                         id: true,
-                        name: true,
+                        firstname: true,
+                        lastname: true,
                         email: true,
                         image: true,
                         role: true
@@ -222,7 +234,7 @@ export async function POST(
             },
             include: {
                 user: {
-                    select: { id: true, name: true }
+                    select: { id: true, firstname: true, lastname: true }
                 }
             }
         })

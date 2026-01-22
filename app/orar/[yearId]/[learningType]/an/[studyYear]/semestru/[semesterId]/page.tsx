@@ -20,61 +20,7 @@ type ParamsProps = Promise<{
     semesterId: string
 }>
 
-type AuditUser = {
-    id: string
-    name: string | null
-    email: string | null
-    image: string | null
-} | null
-
-type EventWithRelations = {
-    id: string
-    day: string
-    startHour: string
-    endHour: string
-    eventType: string
-    eventRecurrence: string | null
-    semester: number
-    academicYearId: string
-    learningId: string
-    teacherId: string
-    disciplineId: string
-    classroomId: string
-    studyYearId?: string
-    teacher: {
-        id: string
-        firstname: string
-        lastname: string
-        grade: string | null
-    } | null
-    discipline: {
-        id: string
-        name: string
-    } | null
-    classroom: {
-        id: string
-        name: string
-        building: string | null
-    } | null
-    // Many-to-many relation through EventGroup - can be different structures
-    groups?: Array<{
-        group?: {
-            id: string
-            name: string
-        }
-        // Or direct group properties if flattened
-        id?: string
-        name?: string
-        groupId?: string
-    }>
-    // Audit fields
-    createdBy?: AuditUser
-    createdById?: string | null
-    updatedBy?: AuditUser
-    updatedById?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-}
+// Type definitions are now imported from lib/event-utils.ts
 
 export default async function SemesterPage({
     params,
@@ -128,7 +74,7 @@ export default async function SemesterPage({
     ])
 
     // Transform events to CalendarEntry format
-    const calendarEntries = transformEventsToCalendarEntries(events as EventWithRelations[])
+    const calendarEntries = transformEventsToCalendarEntries(events)
 
     return (
         <div className="content grid grid-rows-[auto_1fr] h-full overflow-hidden">

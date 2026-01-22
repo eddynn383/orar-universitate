@@ -73,13 +73,15 @@ export async function GET(request: NextRequest) {
             where,
             select: {
                 id: true,
-                name: true,
+                firstname: true,
+                lastname: true,
                 email: true,
                 image: true,
                 role: true
             },
             orderBy: [
-                { name: 'asc' }
+                { lastname: 'asc' },
+                { firstname: 'asc' }
             ],
             skip: (params.page - 1) * params.limit,
             take: params.limit

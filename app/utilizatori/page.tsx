@@ -44,12 +44,14 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
     const filteredUsers = users.filter((user) => {
         if (!searchQuery) return true
 
-        const name = user.name?.toLowerCase() || ""
+        const firstname = user.firstname?.toLowerCase() || ""
+        const lastname = user.lastname?.toLowerCase() || ""
         const email = user.email?.toLowerCase() || ""
         const role = user.role.toLowerCase()
 
         return (
-            name.includes(searchQuery) ||
+            firstname.includes(searchQuery) ||
+            lastname.includes(searchQuery) ||
             email.includes(searchQuery) ||
             role.includes(searchQuery)
         )
@@ -112,9 +114,15 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                             ) : (
                                 <ul className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] auto-rows-min gap-6 w-full">
                                     {filteredUsers.map((user) => {
-                                        const initials = user.name
-                                            ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-                                            : (user.email?.[0]?.toUpperCase() ?? "")
+
+                                        const f = user.firstname[0]
+                                        const l = user.lastname[0]
+                                        const initials = f + l
+
+                                        console.log(initials)
+                                        // const initials = user.lastname
+                                        //     ? user.lastname.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+                                        //     : (user.email?.[0]?.toUpperCase() ?? "")
 
                                         return (
                                             <li key={user.id}>
@@ -129,7 +137,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                                                             </Avatar>
                                                             <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                                                                 <H2 className="text-lg pb-0 truncate">
-                                                                    {user.name || "Utilizator"}
+                                                                    {user.firstname + " " + user.lastname || "Utilizator"}
                                                                 </H2>
 
                                                                 {/* Role badge */}

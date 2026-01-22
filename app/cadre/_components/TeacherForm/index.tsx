@@ -54,8 +54,8 @@ type TeacherFormProps = {
         image?: string | null
         createdAt?: Date | string
         updatedAt?: Date | string
-        createdBy?: AuditUser
-        updatedBy?: AuditUser
+        createdBy?: string | undefined
+        updatedBy?: string | undefined
     },
     user?: {
         id: string
